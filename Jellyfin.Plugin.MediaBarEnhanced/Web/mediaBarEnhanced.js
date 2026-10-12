@@ -30,7 +30,7 @@
   window.mediaBarEnhancedLoaded = true;
 
   // MARK: Version
-  const PLUGIN_VERSION = "3.9.1.0";
+  const PLUGIN_VERSION = "3.9.2.0";
 
   //Core Module Configuration
   const CONFIG = {
