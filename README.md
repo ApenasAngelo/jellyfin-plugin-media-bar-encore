@@ -30,9 +30,7 @@ This plugin is a fork and enhancement of the original [Media Bar by MakD](https:
   - [Build The Plugin By Yourself](#build-the-plugin-by-yourself)
   - [Troubleshooting](#troubleshooting)
     - [Effects Not Showing](#effects-not-showing)
-    - [Adjusting Spacing \& Positioning with Custom CSS (e.g. Custom Themes / Mobile Overlap)](#adjusting-spacing--positioning-with-custom-css-eg-custom-themes--mobile-overlap)
-      - [Desktop Layout (Spacing between Media Bar and Library Rows)](#desktop-layout-spacing-between-media-bar-and-library-rows)
-      - [Mobile Layout (Portrait Overlaps / Custom Navbar Themes)](#mobile-layout-portrait-overlaps--custom-navbar-themes)
+    - [Adjusting Spacing & Positioning with Custom CSS (Custom Themes / Mobile Overlap)](#adjusting-spacing--positioning-with-custom-css-eg-custom-themes--mobile-overlap)
     - [Docker Permission Issues](#docker-permission-issues)
     - [YouTube "Sign in to confirm you're not a bot" message instead of trailers](#youtube-sign-in-to-confirm-youre-not-a-bot-message-instead-of-trailers)
   - [Uninstall](#uninstall)
@@ -200,6 +198,8 @@ Configure the plugin via **Dashboard** > **Plugins** > **Media Bar Enhanced**.
 ### General Settings
 *   **Enable Media Bar Enhanced Plugin**: Master switch to toggle the plugin.
 *   **Enable Video Backdrops**: Dynamically plays trailers in the background.
+*   **Split-Screen Trailer View**: Plays backdrop trailers in a split-screen layout on the right with a smooth fade into the center, keeping fanart and metadata card visible on the left (paradox27 style).
+*   **Pause Slideshow On Hover**: Pauses slide rotation timer and progress bar while hovering over the Media Bar with the mouse.
 *   **Sync Page Backdrop**: Mirrors the active slide background image into Jellyfin's page background.
 *   **Wait For Trailer To End**: Prevents slide transition until the video finishes.
 *   **Enable Trailer on Mobile**: Specific setting to allow video playback on mobile devices (disabled by default to save data/battery).
@@ -214,13 +214,33 @@ Configure the plugin via **Dashboard** > **Plugins** > **Media Bar Enhanced**.
 Define exactly what shows up in your bar.
 
 *   **Enable Custom Media IDs**: Restrict the slideshow to a specific list of IDs.
-    *   **Dynamic Filtering**: Use `genre:Name` or `tag:Name` to pull all matching items from your library. Mix and match with regular IDs.
+    *   **Dynamic Filtering**: Use prefixes to dynamically pull matching items directly from your library:
+        *   `genre:Name` &mdash; Filter by genre (e.g. `genre:Action`)
+        *   `-genre:Name` or `!genre:Name` &mdash; Exclude a genre (e.g. `-genre:Horror` or `!genre:Thriller`)
+        *   Inline exclusion &mdash; Mix inclusions and exclusions (e.g. `genre:Comedy, -Horror, !Romance`)
+        *   `tag:Name` &mdash; Filter by tag (e.g. `tag:Halloween`)
+        *   `-tag:Name` or `!tag:Name` &mdash; Exclude a tag (e.g. `-tag:gore` or `!tag:nsfw`)
+        *   `studio:Name` &mdash; Filter by studio (e.g. `studio:Pixar` or `studio:Marvel Studios`)
+        *   `person:Name` &mdash; Filter by actor, director, or crew (e.g. `person:Tom Hanks` or `director:Christopher Nolan`)
+        *   `year:YYYY` &mdash; Filter by release year (e.g. `year:2024`)
+        *   `years:YYYY-YYYY` &mdash; Filter by year range (e.g. `years:2000-2010` or `years:2000s`)
+        *   `years:YYYY+` &mdash; Filter by minimum year (e.g. `years:2020+`)
+        *   `released:90d` &mdash; Filter by release recency (e.g. premiered in the last 90 days)
+        *   `rating:Rating` &mdash; Filter by official rating (e.g. `rating:PG-13`, `rating:16`) or community score (e.g. `rating:>=7.5`, `rating:8+`, `rating:<=12`)
     *   **Manual Trailer Override**: Add `[YouTube_URL]` or `[Jellyfin_ID]` after an ID to force a specific trailer/video.
     *   Example ID: `a1b2c3d4e5... [https://www.youtube.com/watch?v=VIDEO_ID]`
     *   Example ID: `z1b2c3d4e5... [Jellyfin_ID]`
     *   **Example Mixed List**:
         ```
         genre:Action                            <-- All Action movies
+        -genre:Horror                           <-- Exclude all Horror movies/shows
+        genre:Comedy, -Thriller                 <-- Comedies excluding Thrillers
+        tag:Family, -tag:gore                   <-- Family-tagged items excluding gore
+        studio:Pixar                            <-- All Pixar productions
+        person:Tom Hanks                        <-- All movies/shows with Tom Hanks
+        rating:>=8.0                            <-- Highly rated items (score >= 8.0)
+        years:2000-2010                         <-- All items released between 2000 and 2010
+        years:2020+                             <-- All items released in 2020 or newer
         tag:Christmas                           <-- All Christmas tagged items
         a1b2c3d4e5f6...                         <-- Plays local item video
         6bdu812812hd... [https://youtu.be/...]  <-- Item metadata + Custom YouTube Trailer
@@ -281,7 +301,9 @@ Customize the order of slides in the Media Bar.
 *   **Sort Order**: Ascending or Descending.
 *   **Note**: Sorting applies to both server-fetched content AND Custom Media IDs. Select **Original** to preserve the exact order of your Custom Media IDs list.
 *   **Max Parental Rating**: Items exceeding this age rating (e.g., 0, 12, 16, 18) will be excluded.
-*   **Max Days Recent**: Only show items added to your library in the last X days.
+*   **Max Days Recent (Added Date)**: Only show items added to your library in the last X days.
+*   **Max Days Since Release**: Only show items premiered/released in the last X days (based on premiere/release date).
+*   **Release Years / Range**: Restrict random library selection to specific release years, a range, or a decade (e.g. `2024`, `2000-2010`, `2000s`, or `2020+`).
 *   **Include Watched Content**: If enabled, the random slideshow will also include items that you have already watched (by default, watched items are excluded from random selection to keep the content fresh).
 
 #### Content Limits & Library Filters
@@ -291,6 +313,8 @@ Fine-tune performance by limiting the number of items fetched from the server an
 *   **Max Movies**: Maximum movies to include (for random selection).
 *   **Max Tv Shows**: Maximum TV shows to include (for random selection).
 *   **Libraries to Include in Media Bar**: Multi-select library checkboxes to include or exclude specific libraries from the Media Bar.
+*   **Excluded Genres**: Comma-separated list of genres to completely exclude from the Media Bar (e.g. `Horror, Thriller`). Applies to random library items, dynamic filters, and custom lists.
+*   **Excluded Tags**: Comma-separated list of tags to completely exclude from the Media Bar (e.g. `gore, nsfw`).
 *   **Libraries Allowed to Play Trailer Backdrops**: Select specifically which libraries may autoplay video backdrops (unselected libraries will show static backdrops).
 *   **Preload Count**: Number of slides to preload for smooth transitions (does not apply to low end devices like TVs or iPhones to prevent performance issues).
     *   *Intelligent Preloading*: The plugin uses a safe preloading strategy that respects this count but handles small lists gracefully to avoid playback issues.
