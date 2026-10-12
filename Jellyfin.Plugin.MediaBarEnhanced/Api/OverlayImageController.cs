@@ -24,6 +24,46 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
             _imageDirectory = Path.Combine(applicationPaths.PluginConfigurationsPath, "Jellyfin.Plugin.MediaBarEnhanced", "Assets");
         }
 
+        private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+        /// <summary>
+        /// Builds the file name prefix for an overlay image. Returns null if the name is not acceptable:
+        /// section names are free text, so everything is allowed except path separators, search-pattern
+        /// wildcards, control characters and characters that are invalid in file names on this OS.
+        /// </summary>
+        private static string? GetPrefix(string? filename)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                return "custom_overlay_image_global";
+            }
+
+            if (filename.Length > 100)
+            {
+                return null;
+            }
+
+            var invalid = Path.GetInvalidFileNameChars();
+            foreach (var c in filename)
+            {
+                if (c == '/' || c == '\\' || c == '*' || c == '?' || char.IsControl(c) || Array.IndexOf(invalid, c) >= 0)
+                {
+                    return null;
+                }
+            }
+
+            return $"custom_overlay_image_{filename}";
+        }
+
+        /// <summary>
+        /// Defense in depth: checks that a resolved path stays inside the overlay image directory.
+        /// </summary>
+        private bool IsInsideImageDirectory(string path)
+        {
+            var root = Path.GetFullPath(_imageDirectory).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return Path.GetFullPath(path).StartsWith(root, StringComparison.Ordinal);
+        }
+
         /// <summary>
         /// Uploads a new custom overlay image.
         /// </summary>
@@ -40,9 +80,18 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
             // Extract original extension or fallback to .jpg
             string extension = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(extension)) extension = ".jpg";
-            
+            extension = extension.ToLowerInvariant();
+            if (Array.IndexOf(AllowedExtensions, extension) < 0)
+            {
+                return BadRequest("Unsupported image type.");
+            }
+
             // Delete any existing file with this prefix before saving the new one
-            string prefix = string.IsNullOrWhiteSpace(filename) ? "custom_overlay_image_global" : $"custom_overlay_image_{filename}";
+            string? prefix = GetPrefix(filename);
+            if (prefix == null)
+            {
+                return BadRequest("Invalid filename.");
+            }
 
             try
             {
@@ -60,6 +109,10 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
 
                 string targetFileName = $"{prefix}{extension}";
                 string targetPath = Path.Combine(_imageDirectory, targetFileName);
+                if (!IsInsideImageDirectory(targetPath))
+                {
+                    return BadRequest("Invalid filename.");
+                }
 
                 using (var stream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
@@ -83,7 +136,11 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
         [HttpGet("OverlayImage")]
         public IActionResult GetImage([FromQuery] string? filename = null)
         {
-            string prefix = string.IsNullOrWhiteSpace(filename) ? "custom_overlay_image_global" : $"custom_overlay_image_{filename}";
+            string? prefix = GetPrefix(filename);
+            if (prefix == null)
+            {
+                return BadRequest("Invalid filename.");
+            }
             
             if (!Directory.Exists(_imageDirectory))
                 return NotFound();
@@ -93,6 +150,10 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
                 return NotFound();
 
             string targetPath = existingFiles[0];
+            if (!IsInsideImageDirectory(targetPath))
+            {
+                return NotFound();
+            }
 
             // Read the file and return with appropriate MIME type
             var stream = new FileStream(targetPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
@@ -115,7 +176,11 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
         [HttpDelete("OverlayImage")]
         public IActionResult DeleteImage([FromQuery] string? filename = null)
         {
-            string prefix = string.IsNullOrWhiteSpace(filename) ? "custom_overlay_image_global" : $"custom_overlay_image_{filename}";
+            string? prefix = GetPrefix(filename);
+            if (prefix == null)
+            {
+                return BadRequest("Invalid filename.");
+            }
             
             if (Directory.Exists(_imageDirectory))
             {
@@ -140,12 +205,18 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
         /// <summary>
         /// Renames a custom overlay image (used when a seasonal section is renamed).
         /// </summary>
+        [Authorize(Policy = "RequiresElevation")]
         [HttpPut("OverlayImage/Rename")]
         public IActionResult RenameImage([FromQuery] string oldName, [FromQuery] string newName)
         {
             if (string.IsNullOrWhiteSpace(oldName) || string.IsNullOrWhiteSpace(newName))
             {
                 return BadRequest("Both oldName and newName must be provided.");
+            }
+
+            if (GetPrefix(oldName) == null || GetPrefix(newName) == null)
+            {
+                return BadRequest("Invalid name.");
             }
 
             if (!Directory.Exists(_imageDirectory))
@@ -160,6 +231,10 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Api
                 string oldPath = oldFiles[0];
                 string extension = Path.GetExtension(oldPath);
                 string newPath = Path.Combine(_imageDirectory, $"custom_overlay_image_{newName}{extension}");
+                if (!IsInsideImageDirectory(oldPath) || !IsInsideImageDirectory(newPath))
+                {
+                    return BadRequest("Invalid name.");
+                }
 
                 // If a file with the new name already exists, delete it first to avoid conflicts
                 var existingNewFiles = Directory.GetFiles(_imageDirectory, $"custom_overlay_image_{newName}.*");
