@@ -26,7 +26,7 @@
 /* @import url(https://fonts.googleapis.com/icon?family=Material+Icons); */
 
 .backdrop.animate {
-  animation: kenBurnsZoomIn 10s linear forwards;
+  animation: kenBurnsZoomIn 10s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
   will-change: transform;
   transform-origin: center center;
   backface-visibility: hidden;
@@ -59,7 +59,7 @@
   }
 
   100% {
-    transform: scale(1.08);
+    transform: scale(1.10);
   }
 }
 
@@ -394,6 +394,7 @@ body.jellyfin-v12 .mute-button i {
   height: 100%;
   overflow: hidden;
   border-radius: 5px;
+  contain: paint;
   mask-image: linear-gradient(to top,
       rgba(255, 255, 255, 0) 2%,
       rgba(0, 0, 0, 0.5) 6%,
@@ -426,8 +427,9 @@ body.jellyfin-v12 .mute-button i {
   height: 100%;
   object-fit: cover;
   object-position: center 20%;
-  border-radius: 5px;
+  border-radius: 0;
   z-index: 2;
+  will-change: transform;
   transition: opacity 1.2s ease-in-out;
 }
 
@@ -3108,7 +3110,12 @@ body:has(.videoPlayerContainer-onTop) .media-bar-settings-button {
     mask-composite: intersect !important;
     z-index: 4 !important;
     pointer-events: auto !important;
-    transition: z-index 0.3s ease, mask-image 0.3s ease, -webkit-mask-image 0.3s ease, filter 0.3s ease !important;
+    transition: opacity 0.5s ease-in-out, z-index 0.3s ease, mask-image 0.3s ease, -webkit-mask-image 0.3s ease, filter 0.3s ease;
+  }
+
+  /* Disable pointer events when video is paused or invisible */
+  #slides-container.slideshow-paused.split-screen-trailer .video-backdrop {
+    pointer-events: none !important;
   }
 
   /* When hovering over the trailer video: bring to foreground & reduce mask blend */
@@ -3122,9 +3129,9 @@ body:has(.videoPlayerContainer-onTop) .media-bar-settings-button {
     filter: drop-shadow(-12px 0 30px rgba(0, 0, 0, 0.9));
   }
 
-  /* Dim background image while hovering over the video so the video takes full focus */
-  #slides-container.split-screen-trailer .slide:has(.video-backdrop:hover) .backdrop:not(.video-backdrop),
-  #slides-container.split-screen-trailer .slide.video-hovered .backdrop:not(.video-backdrop) {
+  /* Dim background image while hovering over the video so the video takes full focus (only while playing) */
+  #slides-container.split-screen-trailer:not(.slideshow-paused) .slide:has(.video-backdrop:hover) .backdrop:not(.video-backdrop),
+  #slides-container.split-screen-trailer:not(.slideshow-paused) .slide.video-hovered .backdrop:not(.video-backdrop) {
     opacity: 0.55 !important;
     filter: brightness(0.75);
     transition: opacity 0.3s ease, filter 0.3s ease;

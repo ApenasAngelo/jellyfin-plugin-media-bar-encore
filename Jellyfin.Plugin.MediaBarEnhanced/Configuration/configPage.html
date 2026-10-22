@@ -1051,6 +1051,13 @@
                                     </svg>
                                     <span>Sorting and Filters</span>
                                 </div>
+                                <div class="fieldDescription" style="margin-bottom: 1.2em; color: #999;">
+                                    Note: <b>Max Parental Rating</b> is enforced globally across all sources (including
+                                    Custom IDs, Collections, and Seasonal content). Date and library filters apply when
+                                    loading items automatically from your libraries. Custom Media IDs can also use
+                                    inline filter keywords (e.g. <code>genre:Action</code>, <code>year:2024</code>,
+                                    <code>age:16</code>).
+                                </div>
                                 <div class="grid-2">
                                     <div class="selectContainer">
                                         <label class="selectLabel" for="SortBy">Sort By</label>
@@ -1058,6 +1065,9 @@
                                             class="selectLayout emby-select-withcolor emby-select"
                                             style="width: 100%; -webkit-appearance: menulist; appearance: menulist;">
                                             <option value="Random">Random</option>
+                                            <option value="RecentlyAddedWeighted">Weighted Random (more recent show up
+                                                more often)</option>
+                                            <option value="DateCreated">Recently Added</option>
                                             <option value="Original">Original (Custom List Order)</option>
                                             <option value="PremiereDate">Premiere Date</option>
                                             <option value="ProductionYear">Production Year</option>
