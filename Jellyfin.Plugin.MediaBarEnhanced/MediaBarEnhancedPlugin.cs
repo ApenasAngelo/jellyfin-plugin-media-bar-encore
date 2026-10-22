@@ -76,7 +76,9 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
                 new PluginPageInfo
                 {
                     Name = Name,
+                    DisplayName = "Media Bar Enhanced",
                     EnableInMainMenu = true,
+                    MenuIcon = "view_carousel",
                     EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.configPage.html", GetType().Namespace)
                 }
             ];
