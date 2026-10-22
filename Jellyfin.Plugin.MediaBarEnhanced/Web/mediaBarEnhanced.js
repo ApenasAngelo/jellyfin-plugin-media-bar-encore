@@ -30,7 +30,7 @@
   window.mediaBarEnhancedLoaded = true;
 
   // MARK: Version
-  const PLUGIN_VERSION = "3.9.2.0";
+  const PLUGIN_VERSION = "3.10.0.0";
 
   //Core Module Configuration
   const CONFIG = {
@@ -1100,6 +1100,10 @@
         return items;
       }
 
+      if (sortBy === 'RecentlyAddedWeighted') {
+        return this.weightedRandomSample(items, items.length);
+      }
+
       const simpleCompare = (a, b) => {
         if (a < b) return -1;
         if (a > b) return 1;
@@ -1110,6 +1114,10 @@
         let valA, valB;
 
         switch (sortBy) {
+          case 'DateCreated':
+            valA = a.DateCreated ? new Date(a.DateCreated).getTime() : 0;
+            valB = b.DateCreated ? new Date(b.DateCreated).getTime() : 0;
+            break;
           case 'PremiereDate':
             valA = new Date(a.PremiereDate).getTime();
             valB = new Date(b.PremiereDate).getTime();
@@ -1146,6 +1154,55 @@
       }
 
       return sorted;
+    },
+
+    /**
+     * Samples items with probability weighted towards recently added items (power decay)
+     * @param {Array} items - Items array
+     * @param {number} maxCount - Max number of items to select
+     * @returns {Array} Selected items array
+     */
+    weightedRandomSample(items, maxCount) {
+      if (!items || items.length <= maxCount) {
+        return this.shuffleArray(items ? [...items] : []);
+      }
+
+      const sorted = [...items].sort((a, b) => {
+        const da = a.DateCreated ? new Date(a.DateCreated).getTime() : 0;
+        const db = b.DateCreated ? new Date(b.DateCreated).getTime() : 0;
+        return db - da;
+      });
+
+      const pool = sorted.map((item, idx) => ({
+        item,
+        weight: 1 / Math.pow(idx + 1, 0.6)
+      }));
+
+      const selected = [];
+      const selectedIds = new Set();
+      const count = Math.min(maxCount, pool.length);
+
+      while (selected.length < count && pool.length > 0) {
+        const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+        let rand = Math.random() * totalWeight;
+        let chosenIdx = 0;
+
+        for (let i = 0; i < pool.length; i++) {
+          rand -= pool[i].weight;
+          if (rand <= 0) {
+            chosenIdx = i;
+            break;
+          }
+        }
+
+        const chosen = pool.splice(chosenIdx, 1)[0];
+        if (!selectedIds.has(chosen.item.Id)) {
+          selectedIds.add(chosen.item.Id);
+          selected.push(chosen.item);
+        }
+      }
+
+      return this.shuffleArray(selected);
     },
 
     /**
@@ -1946,14 +2003,19 @@
         const views = data.Items || [];
 
         const map = {};
+        const types = {};
         views.forEach(view => {
           if (view.Name && view.Id) {
             map[view.Name.toLowerCase().trim()] = view.Id;
             map[view.Id] = view.Id;
+            if (view.CollectionType) {
+              types[view.Id] = view.CollectionType.toLowerCase().trim();
+            }
           }
         });
 
         STATE.slideshow.libraryIds = map;
+        STATE.slideshow.libraryTypes = types;
         return map;
       } catch (e) {
         console.error("🎬 Media Bar:", "Error fetching user views for library filtering:", e);
@@ -2224,6 +2286,8 @@
 
         if (CONFIG.sortBy === 'Random' || CONFIG.sortBy === 'Original') {
           sortParams = 'sortBy=Random';
+        } else if (CONFIG.sortBy === 'RecentlyAddedWeighted') {
+          sortParams = 'sortBy=DateCreated&sortOrder=Descending';
         } else {
           sortParams += `&sortOrder=${CONFIG.sortOrder}`;
         }
@@ -2300,8 +2364,21 @@
 
         const fetchItems = async (currentDateFilter, parentId = '') => {
           const parentParam = parentId ? `&parentId=${parentId}` : '';
-          const fetchLimit = Math.max((CONFIG.maxItems || 10) * 3, 30);
-          const url = `${STATE.jellyfinData.serverAddress}/Items?IncludeItemTypes=${itemTypes.join(",")}&Recursive=true&hasOverview=true&imageTypes=Logo,Backdrop&${sortParams}${playedFilter}${parentalFilter}${currentDateFilter}${releaseDateFilter}${excludeFilter}${parentParam}&enableUserData=true&Limit=${fetchLimit}&fields=Id,Type,DateCreated,PremiereDate,ProductionYear,ImageTags,ParentLogoImageTag,ParentBackdropItemId,SeriesId,Genres,Tags`;
+          const fetchLimit = (CONFIG.sortBy === 'RecentlyAddedWeighted')
+            ? Math.max((CONFIG.maxItems || 10) * 8, 80)
+            : Math.max((CONFIG.maxItems || 10) * 3, 30);
+
+          let queryTypes = itemTypes;
+          if (parentId && STATE.slideshow.libraryTypes && STATE.slideshow.libraryTypes[parentId]) {
+            const colType = STATE.slideshow.libraryTypes[parentId];
+            if (colType === 'movies' && itemTypes.includes('Movie')) {
+              queryTypes = ['Movie'];
+            } else if (colType === 'tvshows' && itemTypes.includes('Series')) {
+              queryTypes = ['Series'];
+            }
+          }
+
+          const url = `${STATE.jellyfinData.serverAddress}/Items?IncludeItemTypes=${queryTypes.join(",")}&Recursive=true&hasOverview=true&imageTypes=Logo,Backdrop&${sortParams}${playedFilter}${parentalFilter}${currentDateFilter}${releaseDateFilter}${excludeFilter}${parentParam}&enableUserData=true&EnableTotalRecordCount=false&Limit=${fetchLimit}&fields=Id,Type,DateCreated,PremiereDate,ProductionYear,ImageTags,ParentLogoImageTag,ParentBackdropItemId,SeriesId,Genres,Tags`;
           const resp = await fetch(url, { headers: this.getAuthHeaders() });
           return resp;
         };
@@ -2511,29 +2588,41 @@
         let showCount = 0;
         let keptItems = [];
 
-        for (const item of items) {
-          if ((movieCount + showCount) >= CONFIG.maxItems) {
-            break;
-          }
-          if (item.Type === 'Movie') {
-            if (movieCount < CONFIG.maxMovies) {
-              movieCount++;
-              keptItems.push(item);
-            }
-          } else if (item.Type === 'Series' || item.Type === 'Season' || item.Type === 'Episode') {
-            if (showCount < CONFIG.maxTvShows) {
-              showCount++;
-              keptItems.push(item);
-            }
-          } else {
-            keptItems.push(item);
-          }
-        }
-        items = keptItems;
+        if (CONFIG.sortBy === 'RecentlyAddedWeighted') {
+          const movieCandidates = items.filter(item => item.Type === 'Movie');
+          const showCandidates = items.filter(item => item.Type !== 'Movie');
 
-        // reshuffle if there are different max number for movies and TV
-        if ((CONFIG.maxMovies != CONFIG.maxTvShows) && (CONFIG.sortBy === 'Random' || CONFIG.sortBy === 'Original')) {
-          items.sort(() => Math.random() - 0.5);
+          const pickedMovies = SlideUtils.weightedRandomSample(movieCandidates, CONFIG.maxMovies);
+          const pickedShows = SlideUtils.weightedRandomSample(showCandidates, CONFIG.maxTvShows);
+
+          items = SlideUtils.shuffleArray([...pickedMovies, ...pickedShows]).slice(0, CONFIG.maxItems);
+          movieCount = items.filter(i => i.Type === 'Movie').length;
+          showCount = items.filter(i => i.Type !== 'Movie').length;
+        } else {
+          for (const item of items) {
+            if ((movieCount + showCount) >= CONFIG.maxItems) {
+              break;
+            }
+            if (item.Type === 'Movie') {
+              if (movieCount < CONFIG.maxMovies) {
+                movieCount++;
+                keptItems.push(item);
+              }
+            } else if (item.Type === 'Series' || item.Type === 'Season' || item.Type === 'Episode') {
+              if (showCount < CONFIG.maxTvShows) {
+                showCount++;
+                keptItems.push(item);
+              }
+            } else {
+              keptItems.push(item);
+            }
+          }
+          items = keptItems;
+
+          // reshuffle if there are different max number for movies and TV
+          if ((CONFIG.maxMovies != CONFIG.maxTvShows) && (CONFIG.sortBy === 'Random' || CONFIG.sortBy === 'Original')) {
+            items.sort(() => Math.random() - 0.5);
+          }
         }
 
         console.log("🎬 Media Bar:", `Successfully fetched ${items.length} random library items from server (Movies: ${movieCount}, Shows: ${showCount})`);
@@ -2639,6 +2728,8 @@
         let sortParams = `sortBy=${CONFIG.sortBy}`;
         if (CONFIG.sortBy === 'Random' || CONFIG.sortBy === 'Original') {
           sortParams = 'sortBy=Random';
+        } else if (CONFIG.sortBy === 'RecentlyAddedWeighted') {
+          sortParams = 'sortBy=DateCreated&sortOrder=Descending';
         } else {
           sortParams += `&sortOrder=${CONFIG.sortOrder}`;
         }
@@ -2710,7 +2801,22 @@
         const fetchItemsByFilter = async (parentId = '', personName = '') => {
           const parentParam = parentId ? `&parentId=${parentId}` : '';
           const personParam = personName ? `&person=${encodeURIComponent(personName)}` : '';
-          const url = `${STATE.jellyfinData.serverAddress}/Items?IncludeItemTypes=${itemTypes.join(",")}&Recursive=true&hasOverview=true&imageTypes=Logo,Backdrop&${sortParams}${playedFilter}${parentalFilter}${dateFilter}${excludeFilter}${genreParam}${tagParam}${yearParam}${premiereDateParam}${studioParam}${officialRatingParam}${minCommunityRatingParam}${personParam}${parentParam}&enableUserData=true&Limit=${CONFIG.maxItems}&fields=Id,DateCreated,PremiereDate,ProductionYear,Type,OfficialRating,CommunityRating,Studios,People,Genres,Tags`;
+
+          let queryTypes = itemTypes;
+          if (parentId && STATE.slideshow.libraryTypes && STATE.slideshow.libraryTypes[parentId]) {
+            const colType = STATE.slideshow.libraryTypes[parentId];
+            if (colType === 'movies' && itemTypes.includes('Movie')) {
+              queryTypes = ['Movie'];
+            } else if (colType === 'tvshows' && itemTypes.includes('Series')) {
+              queryTypes = ['Series'];
+            }
+          }
+
+          const fetchLimit = (CONFIG.sortBy === 'RecentlyAddedWeighted')
+            ? Math.max((CONFIG.maxItems || 10) * 8, 80)
+            : CONFIG.maxItems;
+
+          const url = `${STATE.jellyfinData.serverAddress}/Items?IncludeItemTypes=${queryTypes.join(",")}&Recursive=true&hasOverview=true&imageTypes=Logo,Backdrop&${sortParams}${playedFilter}${parentalFilter}${dateFilter}${excludeFilter}${genreParam}${tagParam}${yearParam}${premiereDateParam}${studioParam}${officialRatingParam}${minCommunityRatingParam}${personParam}${parentParam}&enableUserData=true&EnableTotalRecordCount=false&Limit=${fetchLimit}&fields=Id,DateCreated,PremiereDate,ProductionYear,Type,OfficialRating,CommunityRating,Studios,People,Genres,Tags`;
           const resp = await fetch(url, { headers: this.getAuthHeaders() });
           return resp;
         };
@@ -2792,7 +2898,7 @@
         // Sort combined results
         if (CONFIG.sortBy === 'Random' || CONFIG.sortBy === 'Original') {
           items.sort(() => Math.random() - 0.5);
-        } else if (CONFIG.sortBy === 'DateCreated') {
+        } else if (CONFIG.sortBy === 'DateCreated' || CONFIG.sortBy === 'RecentlyAddedWeighted') {
           items.sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
         } else {
           items.sort((a, b) => (a.SortName || '').localeCompare(b.SortName || ''));
@@ -2891,6 +2997,10 @@
           if (items.length < prevCount) {
             console.log("🎬 Media Bar:", `Excluded ${prevCount - items.length} item(s) matching excluded tags: [${effectiveExcludedTags.join(', ')}]`);
           }
+        }
+
+        if (CONFIG.sortBy === 'RecentlyAddedWeighted') {
+          items = SlideUtils.weightedRandomSample(items, CONFIG.maxItems);
         }
 
         console.log("🎬 Media Bar:", `Found ${items.length} items matching filter rules`);
@@ -3146,7 +3256,7 @@
         const recursiveParam = isFolder ? "&Recursive=true" : "";
 
         const response = await fetch(
-          `${STATE.jellyfinData.serverAddress}/Items?ParentId=${collectionId}${recursiveParam}&IncludeItemTypes=${itemTypes.join(",")}&fields=Id,Type,Genres,Tags&userId=${STATE.jellyfinData.userId}`,
+          `${STATE.jellyfinData.serverAddress}/Items?ParentId=${collectionId}${recursiveParam}&IncludeItemTypes=${itemTypes.join(",")}&fields=Id,Type,Genres,Tags,OfficialRating&userId=${STATE.jellyfinData.userId}`,
           {
             headers: this.getAuthHeaders(),
           }
@@ -3160,7 +3270,7 @@
         const data = await response.json();
         const items = data.Items || [];
         console.log("🎬 Media Bar:", `Resolved collection ${collectionId} to ${items.length} items (isFolder=${isFolder})`);
-        return items.map(i => ({ Id: i.Id, Type: i.Type, Genres: i.Genres || [], Tags: i.Tags || [] }));
+        return items.map(i => ({ Id: i.Id, Type: i.Type, Genres: i.Genres || [], Tags: i.Tags || [], OfficialRating: i.OfficialRating }));
       } catch (error) {
         console.error("🎬 Media Bar:", `Error fetching collection items for ${collectionId}:`, error);
         return [];
@@ -4156,6 +4266,13 @@
                     event.target.setVolume(getEffectiveTrailerVolume());
                   }
 
+                  try {
+                    if (typeof event.target.unloadModule === 'function') {
+                      event.target.unloadModule("captions");
+                      event.target.unloadModule("cc");
+                    }
+                  } catch (e) { }
+
                   const slide = document.querySelector(`.slide[data-item-id="${itemId}"]`);
                   const isVideoPlayerOpen = document.querySelector('.videoPlayerContainer') || document.querySelector('.youtubePlayerContainer');
 
@@ -4221,6 +4338,13 @@
                       event.target.pauseVideo();
                       return;
                     }
+
+                    try {
+                      if (typeof event.target.unloadModule === 'function') {
+                        event.target.unloadModule("captions");
+                        event.target.unloadModule("cc");
+                      }
+                    } catch (e) { }
 
                     // Fade in when legitimately playing
                     if (event.target._wrapperDiv) {
@@ -4335,6 +4459,7 @@
             if (!slide || !slide.classList.contains('active')) return;
             if (STATE.slideshow.playSignals && STATE.slideshow.playSignals[itemId] === false) return;
 
+            video.style.transition = "opacity 1.2s ease-in-out";
             video.style.opacity = "1";
             slide.classList.add('with-video');
             STATE.slideshow.isVideoPlaying = true;
@@ -5889,6 +6014,11 @@
         }
       }
 
+      // If paused, clear any video-hovered state immediately
+      if (STATE.slideshow.isPaused) {
+        document.querySelectorAll('.slide.video-hovered').forEach(s => s.classList.remove('video-hovered'));
+      }
+
       // Pause/Resume Progress Bar
       const progressBar = document.querySelector('.media-bar-progress-bar');
       if (progressBar) {
@@ -6038,6 +6168,7 @@
         html5Video.muted = STATE.slideshow.isMuted;
         if (!STATE.slideshow.isMuted) html5Video.volume = getEffectiveTrailerVolume() / 100;
         html5Video.play().then(() => {
+          html5Video.style.transition = "opacity 1.2s ease-in-out";
           html5Video.style.opacity = "1";
           STATE.slideshow.isVideoPlaying = true;
         }).catch(e => {
@@ -6855,7 +6986,7 @@
             const children = await ApiUtils.fetchCollectionItems(id, item.Type);
             finalIds.push(...children);
           } else if (item) {
-            finalIds.push({ Id: item.Id, Type: item.Type, Genres: item.Genres || [], Tags: item.Tags || [] });
+            finalIds.push({ Id: item.Id, Type: item.Type, Genres: item.Genres || [], Tags: item.Tags || [], OfficialRating: item.OfficialRating });
           }
         } catch (e) {
           console.warn("🎬 Media Bar:", `Error resolving item ${rawId}:`, e);
@@ -6940,6 +7071,14 @@
                 resolvedItems = resolvedItems.filter(item => {
                   if (!item.Tags || !Array.isArray(item.Tags) || item.Tags.length === 0) return true;
                   return !item.Tags.some(t => allExcludedTags.includes(t.toLowerCase()));
+                });
+              }
+
+              if (CONFIG.maxParentalRating) {
+                resolvedItems = resolvedItems.filter(item => {
+                  if (!item.OfficialRating) return true;
+                  const ratingNum = parseInt(item.OfficialRating.replace(/\D/g, ''), 10);
+                  return isNaN(ratingNum) || ratingNum <= CONFIG.maxParentalRating;
                 });
               }
 
@@ -7033,6 +7172,14 @@
                 resolvedItems = resolvedItems.filter(item => {
                   if (!item.Tags || !Array.isArray(item.Tags) || item.Tags.length === 0) return true;
                   return !item.Tags.some(t => allExcludedTags.includes(t.toLowerCase()));
+                });
+              }
+
+              if (CONFIG.maxParentalRating) {
+                resolvedItems = resolvedItems.filter(item => {
+                  if (!item.OfficialRating) return true;
+                  const ratingNum = parseInt(item.OfficialRating.replace(/\D/g, ''), 10);
+                  return isNaN(ratingNum) || ratingNum <= CONFIG.maxParentalRating;
                 });
               }
 
