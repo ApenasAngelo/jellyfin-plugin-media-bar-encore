@@ -93,5 +93,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Configuration
         public bool SyncPageBackdrop { get; set; } = false;
         public bool UseRecommendations { get; set; } = false;
         public bool RequireLogo { get; set; } = false;
+        public bool EnableBottomGradient { get; set; } = true;
+        public string DotStyle { get; set; } = "Round";
     }
 }
