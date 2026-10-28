@@ -30,7 +30,7 @@
   window.mediaBarEnhancedLoaded = true;
 
   // MARK: Version
-  const PLUGIN_VERSION = "3.10.0.0";
+  const PLUGIN_VERSION = "3.11.0.0";
 
   //Core Module Configuration
   const CONFIG = {
@@ -123,6 +123,8 @@
     syncPageBackdrop: false,
     useRecommendations: false,
     requireLogo: false,
+    enableBottomGradient: true,
+    dotStyle: "Round",
   };
 
   const CLIENT_MENU_TRANSLATIONS = {
@@ -161,9 +163,16 @@
       progressBarLocationLabel: 'Progress Bar Location',
       progressBarLocationDesc: 'Choose where the timing progress bar is displayed.',
       progressBarLocationDots: 'Under Dots / Counter',
+      progressBarLocationInside: 'Inside Active Dot / Counter',
       progressBarLocationNavbar: 'Top (Under Header)',
+      showPaginationDotsLabel: 'Show Pagination Dots / Counter',
+      showPaginationDotsDesc: 'Display the navigation dots or numeric slide counter at the bottom.',
       forceSlideCounterLabel: 'Always Use Slide Counter',
       forceSlideCounterDesc: 'Force numeric slide counter instead of pagination dots.',
+      dotStyleLabel: 'Pagination Dot Style',
+      dotStyleDesc: 'Choose whether the active pagination dot is a round circle or an elongated capsule.',
+      optionDotStyleRound: 'Round (Classic)',
+      optionDotStylePill: 'Pill / Capsule',
       activePlaylistLabel: 'Active Playlist',
       activePlaylistDesc: 'Select which custom playlist to display.',
       optionMobileModeOriginal: 'Original (65vh)',
@@ -192,6 +201,8 @@
       yoYoProgressBarDesc: 'Empty progress bar from left to right on alternating slides instead of resetting.',
       syncPageBackdropLabel: 'Sync Page Backdrop',
       syncPageBackdropDesc: 'Mirrors the featured slide background image into Jellyfin\'s page background.',
+      enableBottomGradientLabel: 'Enable Bottom Gradient',
+      enableBottomGradientDesc: 'Smoothly fade the bottom edge of the media bar into Jellyfin\'s content (turn off for custom themes/skins).',
       useRecommendationsLabel: 'Personalized Recommendations',
       useRecommendationsDesc: 'Show recommendations based on your watch history.',
       requireLogoLabel: 'Require Title Logo',
@@ -206,7 +217,11 @@
       toastResumed: 'Slideshow Resumed',
       seasonPrefix: 'Season {0}: ',
       episodePrefix: 'Episode {0}: ',
-      seasonEpisodePrefix: 'Season {0}, Episode {1}: '
+      seasonEpisodePrefix: 'Season {0}, Episode {1}: ',
+      seasonLabel: 'Season',
+      seasonsLabel: 'Seasons',
+      episodeLabel: 'Episode',
+      episodesLabel: 'Episodes'
     },
     'de': {
       title: 'Media Bar Einstellungen',
@@ -221,9 +236,16 @@
       progressBarLocationLabel: 'Position des Fortschrittsbalkens',
       progressBarLocationDesc: 'Wähle aus, wo der Timer-Fortschrittsbalken angezeigt wird.',
       progressBarLocationDots: 'Unter den Punkten / Counter',
+      progressBarLocationInside: 'Im aktiven Punkt / Counter',
       progressBarLocationNavbar: 'Oben (Unter Kopfzeile)',
+      showPaginationDotsLabel: 'Navigationspunkte / Zähler anzeigen',
+      showPaginationDotsDesc: 'Zeigt die Navigationspunkte oder den Folienzähler unten an.',
       forceSlideCounterLabel: 'Zähler anstelle von Punkten erzwingen',
       forceSlideCounterDesc: 'Erzwingt den numerischen Diashow-Zähler anstelle der Navigationspunkte.',
+      dotStyleLabel: 'Punkte-Stil',
+      dotStyleDesc: 'Wähle aus, ob der aktive Navigationspunkt rund oder eine längliche Kapsel ist.',
+      optionDotStyleRound: 'Rund (Klassisch)',
+      optionDotStylePill: 'Kapsel (Länglich)',
       activePlaylistLabel: 'Aktive Playlist',
       activePlaylistDesc: 'Wähle aus, welche Kachel-Playlist geladen wird.',
       optionMobileModeOriginal: 'Original (65vh)',
@@ -274,6 +296,8 @@
       yoYoProgressBarDesc: 'Ladebalken bei abwechselnden Folien von links nach rechts leeren anstatt zurückzuspringen.',
       syncPageBackdropLabel: 'Seiten-Hintergrund synchronisieren',
       syncPageBackdropDesc: 'Spiegelt das Hintergrundbild der aktuellen Folie in den Seiten-Hintergrund von Jellyfin.',
+      enableBottomGradientLabel: 'Unteren Farbverlauf aktivieren',
+      enableBottomGradientDesc: 'Blendet den unteren Rand der Media Bar weich in den Seiteninhalt aus (für eigene Themes/Skins deaktivierbar).',
       useRecommendationsLabel: 'Personalisierte Empfehlungen',
       useRecommendationsDesc: 'Zeigt Vorschläge basierend auf deinem bisherigen Sehverlauf.',
       requireLogoLabel: 'Titel-Logo erforderlich',
@@ -288,7 +312,11 @@
       toastResumed: 'Diashow fortgesetzt',
       seasonPrefix: 'Staffel {0}: ',
       episodePrefix: 'Folge {0}: ',
-      seasonEpisodePrefix: 'Staffel {0}, Folge {1}: '
+      seasonEpisodePrefix: 'Staffel {0}, Folge {1}: ',
+      seasonLabel: 'Staffel',
+      seasonsLabel: 'Staffeln',
+      episodeLabel: 'Folge',
+      episodesLabel: 'Folgen'
     },
     'es': {
       title: 'Ajustes de Media Bar',
@@ -325,9 +353,16 @@
       progressBarLocationLabel: 'Ubicación de la barra de progreso',
       progressBarLocationDesc: 'Elige dónde se muestra la barra de progreso de tiempo.',
       progressBarLocationDots: 'Debajo de los puntos / contador',
+      progressBarLocationInside: 'Dentro del punto activo / contador',
       progressBarLocationNavbar: 'Parte superior (debajo de la cabecera)',
+      showPaginationDotsLabel: 'Mostrar puntos / contador de paginación',
+      showPaginationDotsDesc: 'Muestra los puntos de navegación o el contador de diapositivas en la parte inferior.',
       forceSlideCounterLabel: 'Forzar contador numérico',
       forceSlideCounterDesc: 'Fuerza el contador numérico de diapositivas en lugar de los puntos de paginación.',
+      dotStyleLabel: 'Estilo de puntos',
+      dotStyleDesc: 'Elige si el punto activo es redondo o una cápsula alargada.',
+      optionDotStyleRound: 'Redondo (Clásico)',
+      optionDotStylePill: 'Cápsula (Alargado)',
       activePlaylistLabel: 'Lista de reproducción activa',
       activePlaylistDesc: 'Selecciona qué lista de reproducción de mosaico mostrar.',
       optionMobileModeOriginal: 'Original (65vh)',
@@ -356,6 +391,8 @@
       yoYoProgressBarDesc: 'Vaciar la barra de progreso de izquierda a derecha en diapositivas alternas en lugar de reiniciar.',
       syncPageBackdropLabel: 'Sincronizar fondo de página',
       syncPageBackdropDesc: 'Refleja la imagen de fondo de la diapositiva en el fondo de página de Jellyfin.',
+      enableBottomGradientLabel: 'Activar degradado inferior',
+      enableBottomGradientDesc: 'Desvanece suavemente el borde inferior de la barra multimedia (desactivar para temas o skins personalizados).',
       useRecommendationsLabel: 'Recomendaciones personalizadas',
       useRecommendationsDesc: 'Muestra recomendaciones basadas en tu historial de reproducción.',
       requireLogoLabel: 'Requerir logo de título',
@@ -370,7 +407,11 @@
       toastResumed: 'Diapositivas en reproducción',
       seasonPrefix: 'Temporada {0}: ',
       episodePrefix: 'Episodio {0}: ',
-      seasonEpisodePrefix: 'Temporada {0}, Episodio {1}: '
+      seasonEpisodePrefix: 'Temporada {0}, Episodio {1}: ',
+      seasonLabel: 'Temporada',
+      seasonsLabel: 'Temporadas',
+      episodeLabel: 'Episodio',
+      episodesLabel: 'Episodios'
     },
     'fr': {
       title: 'Paramètres de Media Bar',
@@ -407,9 +448,16 @@
       progressBarLocationLabel: 'Emplacement de la barre de progression',
       progressBarLocationDesc: 'Choisissez où la barre de progression temporelle est affichée.',
       progressBarLocationDots: 'Sous les points / compteur',
+      progressBarLocationInside: 'Dans le point actif / compteur',
       progressBarLocationNavbar: 'En haut (sous l\'en-tête)',
+      showPaginationDotsLabel: 'Afficher les points / compteur de pagination',
+      showPaginationDotsDesc: 'Affiche les points de navigation ou le compteur de diapositives en bas.',
       forceSlideCounterLabel: 'Toujours utiliser le compteur',
       forceSlideCounterDesc: 'Force le compteur de diapositives numérique au lieu des points de pagination.',
+      dotStyleLabel: 'Style des points',
+      dotStyleDesc: 'Choisissez si le point actif est rond ou une capsule allongée.',
+      optionDotStyleRound: 'Rond (Classique)',
+      optionDotStylePill: 'Capsule (Allongé)',
       activePlaylistLabel: 'Liste de lecture active',
       activePlaylistDesc: 'Sélectionnez la liste de lecture personnalisée à afficher.',
       optionMobileModeOriginal: 'Original (65vh)',
@@ -438,6 +486,8 @@
       yoYoProgressBarDesc: 'Vider la barre de progression de gauche à droite sur les diapositives alternées au lieu de réinitialiser.',
       syncPageBackdropLabel: 'Synchroniser l\'arrière-plan de la page',
       syncPageBackdropDesc: 'Répète l\'image d\'arrière-plan de la diapositive active dans l\'arrière-plan de la page Jellyfin.',
+      enableBottomGradientLabel: 'Activer le dégradé inférieur',
+      enableBottomGradientDesc: 'Estompe doucement le bord inférieur de la barre multimédia (désactiver pour les thèmes personnalisés).',
       useRecommendationsLabel: 'Recommandations personnalisées',
       useRecommendationsDesc: 'Afficher des recommandations basées sur votre historique de visionnage.',
       requireLogoLabel: 'Exiger le logo du titre',
@@ -452,7 +502,11 @@
       toastResumed: 'Reprise du diaporama',
       seasonPrefix: 'Saison {0}: ',
       episodePrefix: 'Épisode {0}: ',
-      seasonEpisodePrefix: 'Saison {0}, Épisode {1}: '
+      seasonEpisodePrefix: 'Saison {0}, Épisode {1}: ',
+      seasonLabel: 'Saison',
+      seasonsLabel: 'Saisons',
+      episodeLabel: 'Épisode',
+      episodesLabel: 'Épisodes'
     },
     'it': {
       title: 'Impostazioni Media Bar',
@@ -489,9 +543,16 @@
       progressBarLocationLabel: 'Posizione della barra di avanzamento',
       progressBarLocationDesc: 'Scegli dove mostrare la barra di avanzamento del tempo.',
       progressBarLocationDots: 'Sotto i punti / contatore',
+      progressBarLocationInside: 'Nel punto attivo / contatore',
       progressBarLocationNavbar: 'In alto (sotto l\'intestazione)',
+      showPaginationDotsLabel: 'Mostra punti / contatore di navigazione',
+      showPaginationDotsDesc: 'Mostra i punti di navigazione o il contatore delle diapositive in basso.',
       forceSlideCounterLabel: 'Forza contatore diapositive',
       forceSlideCounterDesc: 'Forza il contatore numerico delle diapositive al posto dei punti di paginazione.',
+      dotStyleLabel: 'Stile dei punti',
+      dotStyleDesc: 'Scegli se il punto attivo è rotondo o una capsula allungata.',
+      optionDotStyleRound: 'Rotondo (Classico)',
+      optionDotStylePill: 'Capsula (Allungata)',
       activePlaylistLabel: 'Playlist attiva',
       activePlaylistDesc: 'Seleziona quale playlist personalizzata visualizzare.',
       optionMobileModeOriginal: 'Originale (65vh)',
@@ -520,6 +581,8 @@
       yoYoProgressBarDesc: 'Svuota la barra di avanzamento da sinistra a destra nelle diapositive alternate invece di ripristinare.',
       syncPageBackdropLabel: 'Sincronizza sfondo pagina',
       syncPageBackdropDesc: 'Riflette l\'immagine di sfondo della diapositiva corrente nello sfondo della pagina di Jellyfin.',
+      enableBottomGradientLabel: 'Attiva sfumatura inferiore',
+      enableBottomGradientDesc: 'Sfuma delicatamente il bordo inferiore della barra multimediale (disattivare per skin personalizzate).',
       useRecommendationsLabel: 'Raccomandazioni personalizzate',
       useRecommendationsDesc: 'Mostra suggerimenti basati sulla tua cronologia di visione.',
       requireLogoLabel: 'Richiedi logo del titolo',
@@ -534,7 +597,11 @@
       toastResumed: 'Presentazione ripresa',
       seasonPrefix: 'Stagione {0}: ',
       episodePrefix: 'Episodio {0}: ',
-      seasonEpisodePrefix: 'Stagione {0}, Episodio {1}: '
+      seasonEpisodePrefix: 'Stagione {0}, Episodio {1}: ',
+      seasonLabel: 'Stagione',
+      seasonsLabel: 'Stagioni',
+      episodeLabel: 'Episodio',
+      episodesLabel: 'Episodi'
     }
   };
 
@@ -1405,6 +1472,8 @@
           element.className = value;
         } else if (key === "innerHTML") {
           element.innerHTML = value;
+        } else if (key === "textContent") {
+          element.textContent = value;
         } else if (key === "onclick" && typeof value === "function") {
           element.addEventListener("click", value);
         } else if (key === "disablePictureInPicture" || key === "disablepictureinpicture") {
@@ -1448,6 +1517,11 @@
       }
       if (typeof isSplitScreenTrailerEnabled === 'function') {
         container.classList.toggle("split-screen-trailer", isSplitScreenTrailerEnabled());
+      }
+      if (typeof isBottomGradientEnabled === 'function') {
+        const isGrad = isBottomGradientEnabled();
+        container.classList.toggle("no-bottom-gradient", !isGrad);
+        document.body.classList.toggle("media-bar-no-bottom-gradient", !isGrad);
       }
       return container;
     },
@@ -1930,7 +2004,7 @@
 
         const response = await fetch(
           // `${STATE.jellyfinData.serverAddress}/Items/${itemId}`,
-          `${STATE.jellyfinData.serverAddress}/Items/${itemId}?Fields=Overview,RemoteTrailers,Genres,CommunityRating,CriticRating,OfficialRating,PremiereDate,ProductionYear,MediaSources,RunTimeTicks,LocalTrailerCount`,
+          `${STATE.jellyfinData.serverAddress}/Items/${itemId}?Fields=Overview,RemoteTrailers,Genres,CommunityRating,CriticRating,OfficialRating,PremiereDate,ProductionYear,MediaSources,RunTimeTicks,LocalTrailerCount,ChildCount,RecursiveItemCount`,
           {
             headers: this.getAuthHeaders(),
           }
@@ -4753,8 +4827,11 @@
         OfficialRating: ageRating,
         PremiereDate: premiereDate,
         RunTimeTicks: runtime,
-        ChildCount: seasonCount,
+        ChildCount: rawChildCount,
+        RecursiveItemCount: recursiveCount,
       } = item;
+
+      const childCount = rawChildCount !== undefined ? rawChildCount : recursiveCount;
 
       const miscInfo = SlideUtils.createElement("div", {
         className: "misc-info",
@@ -4804,23 +4881,44 @@
         miscInfo.appendChild(SlideUtils.createSeparator());
       };
 
-      // Runtime / Seasons Section
-      if (seasonCount !== undefined || runtime !== undefined) {
+      // Runtime / Seasons / Episodes Section
+      if (childCount != null) {
         const container = SlideUtils.createElement("div", {
           className: "runTime",
         });
-        if (seasonCount) {
-          const seasonText = seasonCount <= 1 ? LocalizationUtils.getLocalizedString('Season', 'Season') : LocalizationUtils.getLocalizedString('TypeOptionPluralSeason', 'Seasons');
-          container.innerHTML = `${seasonCount} ${seasonText}`;
+        if (item.Type === "Season") {
+          const episodeText = childCount <= 1
+            ? (LocalizationUtils.getCustomLocalizedString('episodeLabel', null) || LocalizationUtils.getLocalizedString('Episode', 'Episode'))
+            : (LocalizationUtils.getCustomLocalizedString('episodesLabel', null) || LocalizationUtils.getLocalizedString('TypeOptionPluralEpisode', LocalizationUtils.getLocalizedString('Episodes', 'Episodes')));
+          container.innerHTML = `${childCount} ${episodeText}`;
+        } else if (item.Type === "Series") {
+          const seasonText = childCount <= 1
+            ? (LocalizationUtils.getCustomLocalizedString('seasonLabel', null) || LocalizationUtils.getLocalizedString('Season', 'Season'))
+            : (LocalizationUtils.getCustomLocalizedString('seasonsLabel', null) || LocalizationUtils.getLocalizedString('TypeOptionPluralSeason', LocalizationUtils.getLocalizedString('Seasons', 'Seasons')));
+          container.innerHTML = `${childCount} ${seasonText}`;
+        } else if (item.Type === "BoxSet" || item.Type === "Playlist") {
+          const itemText = childCount <= 1
+            ? LocalizationUtils.getLocalizedString('Item', 'Item')
+            : LocalizationUtils.getLocalizedString('HeaderItems', LocalizationUtils.getLocalizedString('Items', 'Items'));
+          container.innerHTML = `${childCount} ${itemText}`;
         } else {
-          const milliseconds = runtime / 10000;
-          const currentTime = new Date();
-          const endTime = new Date(currentTime.getTime() + milliseconds);
-          const options = { hour: "2-digit", minute: "2-digit" };
-          const formattedEndTime = endTime.toLocaleTimeString([], options);
-          const endsAtText = LocalizationUtils.getLocalizedString('EndsAtValue', 'Ends at {0}', formattedEndTime);
-          container.innerText = endsAtText;
+          const seasonText = childCount <= 1
+            ? (LocalizationUtils.getCustomLocalizedString('seasonLabel', null) || LocalizationUtils.getLocalizedString('Season', 'Season'))
+            : (LocalizationUtils.getCustomLocalizedString('seasonsLabel', null) || LocalizationUtils.getLocalizedString('TypeOptionPluralSeason', LocalizationUtils.getLocalizedString('Seasons', 'Seasons')));
+          container.innerHTML = `${childCount} ${seasonText}`;
         }
+        miscInfo.appendChild(container);
+      } else if (runtime != null) {
+        const container = SlideUtils.createElement("div", {
+          className: "runTime",
+        });
+        const milliseconds = runtime / 10000;
+        const currentTime = new Date();
+        const endTime = new Date(currentTime.getTime() + milliseconds);
+        const options = { hour: "2-digit", minute: "2-digit" };
+        const formattedEndTime = endTime.toLocaleTimeString([], options);
+        const endsAtText = LocalizationUtils.getLocalizedString('EndsAtValue', 'Ends at {0}', formattedEndTime);
+        container.innerText = endsAtText;
         miscInfo.appendChild(container);
       }
 
@@ -5141,9 +5239,12 @@
     },
 
     createPaginationDots() {
-      if (!CONFIG.showPaginationDots) return;
-
+      const showDots = MediaBarEnhancedSettingsManager.getSetting('showPaginationDots', CONFIG.showPaginationDots);
       let dotsContainer = document.querySelector(".dots-container");
+      if (!showDots) {
+        if (dotsContainer) dotsContainer.remove();
+        return;
+      }
       if (!dotsContainer) {
         dotsContainer = document.createElement("div");
         dotsContainer.className = "dots-container";
@@ -5159,7 +5260,12 @@
       if (window.matchMedia("(max-width: 767px) and (orientation: portrait)").matches) {
         const availableWidth = window.innerWidth * 0.9;
         const dotWidth = 18; // approximate width per dot
-        const fittingDots = Math.floor(availableWidth / dotWidth) - 1;
+        // reserve extra room when the active dot is stretched to hold the progress bar or pill style
+        const showProgress = MediaBarEnhancedSettingsManager.getSetting('showProgressBar', CONFIG.showProgressBar);
+        const progressInIndicator = showProgress && MediaBarEnhancedSettingsManager.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Inside';
+        const isPill = MediaBarEnhancedSettingsManager.getSetting('dotStyle', CONFIG.dotStyle) === 'Pill';
+        const extraRoom = (progressInIndicator || isPill) ? 3 : 1;
+        const fittingDots = Math.floor(availableWidth / dotWidth) - extraRoom;
         effectiveMaxDots = Math.min(effectiveMaxDots, fittingDots);
       }
 
@@ -5203,24 +5309,39 @@
       // Handle Large List Counter
       const counter = document.getElementById("slide-counter");
       if (counter) {
-        counter.textContent = `${currentIndex + 1} / ${totalItems}`;
-        return;
+        let textSpan = counter.querySelector('.slide-counter-text');
+        if (!textSpan) {
+          textSpan = document.createElement('span');
+          textSpan.className = 'slide-counter-text';
+          counter.appendChild(textSpan);
+        }
+        textSpan.textContent = `${currentIndex + 1} / ${totalItems}`;
+      } else {
+        // Handle Dots
+        const container = SlideUtils.getOrCreateSlidesContainer();
+        const dots = container.querySelectorAll(".dot");
+
+        // Fallback if dots exist but totalItems matched counter mode
+        if (dots.length > 0) {
+          dots.forEach((dot, index) => {
+            if (index === currentIndex) {
+              dot.classList.add("active");
+            } else {
+              dot.classList.remove("active");
+            }
+          });
+        }
       }
 
-      // Handle Dots
-      const container = SlideUtils.getOrCreateSlidesContainer();
-      const dots = container.querySelectorAll(".dot");
+      const dotsContainer = document.querySelector(".dots-container");
+      if (dotsContainer) {
+        const isProgressInside = MediaBarEnhancedSettingsManager.getSetting('showProgressBar', CONFIG.showProgressBar) &&
+          (MediaBarEnhancedSettingsManager.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Inside');
+        dotsContainer.classList.toggle('progress-inside', isProgressInside);
 
-      // Fallback if dots exist but totalItems matched counter mode
-      if (dots.length === 0) return;
-
-      dots.forEach((dot, index) => {
-        if (index === currentIndex) {
-          dot.classList.add("active");
-        } else {
-          dot.classList.remove("active");
-        }
-      });
+        const dotStyle = MediaBarEnhancedSettingsManager.getSetting('dotStyle', CONFIG.dotStyle) || 'Round';
+        dotsContainer.classList.toggle('dots-style-pill', dotStyle === 'Pill' || isProgressInside);
+      }
     },
 
     /**
@@ -5430,7 +5551,29 @@
         const muteButton = document.querySelector('.mute-button');
         if (muteButton) {
           const hasVideo = !!videoBackdrop;
-          muteButton.style.display = hasVideo ? 'block' : 'none';
+          muteButton.style.display = hasVideo ? 'flex' : 'none';
+          if (hasVideo) {
+            const isMuted = !!STATE.slideshow.isMuted;
+            const vol = getEffectiveTrailerVolume();
+            let iconName = 'volume_up';
+            if (isMuted || vol === 0) {
+              iconName = 'volume_off';
+            } else if (vol <= 50) {
+              iconName = 'volume_down';
+            }
+            const iconEl = muteButton.querySelector('.mute-icon') || muteButton.querySelector('i');
+            if (iconEl) {
+              iconEl.textContent = iconName;
+            }
+            muteButton.classList.toggle('is-muted', isMuted);
+            const slider = muteButton.querySelector('.media-bar-volume-slider');
+            if (slider) {
+              const displayVol = isMuted ? 0 : vol;
+              slider.value = displayVol;
+              slider.title = `${displayVol}%`;
+              slider.style.setProperty('--volume-percent', `${displayVol}%`);
+            }
+          }
         }
 
         if (videoBackdrop) {
@@ -5670,6 +5813,15 @@
       if (locationSetting === 'Navbar') {
         parentContainer = document.getElementById('slides-container');
         positionClass = 'progress-bar-navbar';
+      } else if (locationSetting === 'Inside') {
+        const counter = document.getElementById('slide-counter');
+        if (counter) {
+          parentContainer = counter;
+          positionClass = 'progress-bar-inside';
+        } else if (dotsContainer) {
+          parentContainer = dotsContainer.querySelector('.dot.active');
+          positionClass = 'progress-bar-inside';
+        }
       } else { // 'Dots'
         if (dotsContainer) {
           parentContainer = dotsContainer;
@@ -5913,10 +6065,36 @@
       const isUnmuting = !STATE.slideshow.isMuted;
       const muteButton = document.querySelector('.mute-button');
 
+      if (isUnmuting && getEffectiveTrailerVolume() === 0) {
+        MediaBarEnhancedSettingsManager.setSetting('defaultTrailerVolume', parseInt(CONFIG.defaultTrailerVolume, 10) || 40);
+      }
+
       const updateIcon = () => {
         if (!muteButton) return;
         const isMuted = STATE.slideshow.isMuted;
-        muteButton.innerHTML = `<i class="material-icons">${isMuted ? 'volume_off' : 'volume_up'}</i>`;
+        const vol = getEffectiveTrailerVolume();
+        let iconName = 'volume_up';
+        if (isMuted || vol === 0) {
+          iconName = 'volume_off';
+        } else if (vol <= 50) {
+          iconName = 'volume_down';
+        }
+        const iconEl = muteButton.querySelector('.mute-icon') || muteButton.querySelector('i');
+        if (iconEl) {
+          iconEl.textContent = iconName;
+        }
+        if (isMuted) {
+          muteButton.classList.add('is-muted');
+        } else {
+          muteButton.classList.remove('is-muted');
+        }
+        const slider = muteButton.querySelector('.media-bar-volume-slider');
+        if (slider) {
+          const displayVol = isMuted ? 0 : vol;
+          slider.value = displayVol;
+          slider.title = `${displayVol}%`;
+          slider.style.setProperty('--volume-percent', `${displayVol}%`);
+        }
         const label = isMuted ? 'Unmute' : 'Mute';
         muteButton.setAttribute("aria-label", LocalizationUtils.getLocalizedString(label, label));
         muteButton.setAttribute("title", LocalizationUtils.getLocalizedString(label, label));
@@ -7368,24 +7546,195 @@
     pauseButton.addEventListener("touchend", (e) => e.stopPropagation(), { passive: true });
     pauseButton.addEventListener("mousedown", (e) => e.stopPropagation());
 
+    const initialVol = getEffectiveTrailerVolume();
+    const isInitiallyMuted = !!STATE.slideshow.isMuted;
+    const displayInitialVol = isInitiallyMuted ? 0 : initialVol;
+    const initialIcon = isInitiallyMuted || initialVol === 0 ? 'volume_off' : (initialVol <= 50 ? 'volume_down' : 'volume_up');
+    const muteLabel = LocalizationUtils.getLocalizedString(isInitiallyMuted ? 'Unmute' : 'Mute', isInitiallyMuted ? 'Unmute' : 'Mute');
+
+    let isLongPress = false;
+    let longPressTimer = null;
+
     const muteButton = SlideUtils.createElement("div", {
-      className: "mute-button",
-      innerHTML: STATE.slideshow.isMuted ? '<i class="material-icons">volume_off</i>' : '<i class="material-icons">volume_up</i>',
+      className: `mute-button ${isInitiallyMuted ? 'is-muted' : ''}`,
+      innerHTML: `<i class="material-icons mute-icon">${initialIcon}</i>`,
       tabIndex: "0",
-      "aria-label": STATE.slideshow.isMuted ? LocalizationUtils.getLocalizedString('Unmute', 'Unmute') : LocalizationUtils.getLocalizedString('Mute', 'Mute'),
-      title: STATE.slideshow.isMuted ? LocalizationUtils.getLocalizedString('Unmute', 'Unmute') : LocalizationUtils.getLocalizedString('Mute', 'Mute'),
+      "aria-label": muteLabel,
+      title: muteLabel,
       style: { display: "none" },
       onclick: (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (isLongPress) {
+          isLongPress = false;
+          return;
+        }
+        // Only toggle mute if clicking the icon button, not inside the volume slider box
+        if (e.target && e.target.closest && e.target.closest('.media-bar-volume-wrap')) {
+          return;
+        }
         SlideshowManager.toggleMute();
       }
     });
 
-    // Prevent touch events from bubbling to container
-    muteButton.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
-    muteButton.addEventListener("touchend", (e) => e.stopPropagation(), { passive: true });
+    const muteIcon = muteButton.querySelector('.mute-icon');
+
+    const volumeWrap = SlideUtils.createElement("div", {
+      className: "media-bar-volume-wrap"
+    });
+    const volumeSlider = SlideUtils.createElement("input", {
+      type: "range",
+      className: "media-bar-volume-slider",
+      min: "0",
+      max: "100",
+      step: "1",
+      value: String(displayInitialVol),
+      title: `${displayInitialVol}%`,
+      "aria-label": "Trailer Volume",
+      style: {
+        "--volume-percent": `${displayInitialVol}%`
+      }
+    });
+
+    // Clicking directly on the slider handles its own native change
+    volumeSlider.addEventListener("click", (e) => e.stopPropagation());
+
+    // Clicking anywhere in the pill capsule jumps directly to that percentage
+    volumeWrap.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const rect = volumeSlider.getBoundingClientRect();
+      if (rect.width > 0) {
+        const clickX = e.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+        const newVol = Math.round(ratio * 100);
+        volumeSlider.value = String(newVol);
+        volumeSlider.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+
+    // Prevent mouse/touch events from bubbling out of the capsule to muteButton or container
+    ["mousedown", "touchstart", "touchmove", "touchend"].forEach((event) => {
+      volumeWrap.addEventListener(event, (e) => e.stopPropagation(), { passive: event.startsWith("touch") });
+    });
+
+    volumeSlider.addEventListener("input", (e) => {
+      e.stopPropagation();
+      let newVol = parseInt(e.target.value, 10);
+      if (newVol < 4) {
+        newVol = 0;
+        volumeSlider.value = "0";
+      }
+      volumeSlider.title = `${newVol}%`;
+      volumeSlider.style.setProperty('--volume-percent', `${newVol}%`);
+
+      if (newVol > 0 && STATE.slideshow.isMuted) {
+        STATE.slideshow.isMuted = false;
+        muteButton.classList.remove('is-muted');
+        const activeLabel = LocalizationUtils.getLocalizedString('Mute', 'Mute');
+        muteButton.setAttribute("aria-label", activeLabel);
+        muteButton.setAttribute("title", activeLabel);
+      } else if (newVol === 0 && !STATE.slideshow.isMuted) {
+        STATE.slideshow.isMuted = true;
+        muteButton.classList.add('is-muted');
+        const activeLabel = LocalizationUtils.getLocalizedString('Unmute', 'Unmute');
+        muteButton.setAttribute("aria-label", activeLabel);
+        muteButton.setAttribute("title", activeLabel);
+      }
+
+      if (newVol > 0) {
+        MediaBarEnhancedSettingsManager.setSetting('defaultTrailerVolume', newVol);
+      }
+
+      const currentItemId = STATE.slideshow.itemIds[STATE.slideshow.currentSlideIndex];
+      if (currentItemId) {
+        const currentSlide = document.querySelector(`.slide[data-item-id="${currentItemId}"]`);
+        const video = currentSlide ? currentSlide.querySelector('video') : null;
+        if (video) {
+          video.muted = STATE.slideshow.isMuted;
+          if (!STATE.slideshow.isMuted) {
+            video.volume = newVol / 100;
+            video.play().catch(err => { if (err.name !== 'AbortError') console.warn(err); });
+          }
+        }
+        const player = STATE.slideshow.videoPlayers ? STATE.slideshow.videoPlayers[currentItemId] : null;
+        if (player) {
+          if (STATE.slideshow.isMuted) {
+            if (typeof player.mute === 'function') player.mute();
+          } else {
+            if (typeof player.unMute === 'function') player.unMute();
+            if (typeof player.setVolume === 'function') player.setVolume(newVol);
+            if (typeof player.playVideo === 'function') player.playVideo();
+          }
+        }
+      }
+
+      let dynamicIcon = 'volume_up';
+      if (STATE.slideshow.isMuted || newVol === 0) {
+        dynamicIcon = 'volume_off';
+      } else if (newVol <= 50) {
+        dynamicIcon = 'volume_down';
+      }
+      if (muteIcon) {
+        muteIcon.textContent = dynamicIcon;
+      }
+    });
+
+    volumeWrap.appendChild(volumeSlider);
+    muteButton.appendChild(volumeWrap);
+
+    // Prevent desktop mouse events from bubbling to container
     muteButton.addEventListener("mousedown", (e) => e.stopPropagation());
+
+    // Mouse leave reliably removes active state and drops focus so slider collapses
+    muteButton.addEventListener("mouseleave", () => {
+      muteButton.classList.remove('slider-active');
+      muteButton.blur();
+      if (volumeSlider) {
+        volumeSlider.blur();
+      }
+    });
+
+    // Mobile touch & Long-press (400ms) to toggle slider visibility on touch devices
+    muteButton.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+      isLongPress = false;
+      longPressTimer = setTimeout(() => {
+        isLongPress = true;
+        muteButton.classList.toggle('slider-active');
+        if (navigator.vibrate) {
+          try { navigator.vibrate(40); } catch (err) { }
+        }
+      }, 400);
+    }, { passive: true });
+
+    muteButton.addEventListener("touchmove", () => {
+      if (!isLongPress && longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }, { passive: true });
+
+    muteButton.addEventListener("touchend", (e) => {
+      e.stopPropagation();
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      if (isLongPress) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Tap or click outside to close active slider (mobile touch & desktop mouse)
+    document.addEventListener("pointerdown", (e) => {
+      if (!muteButton.contains(e.target)) {
+        muteButton.classList.remove('slider-active');
+        muteButton.blur();
+        if (volumeSlider) {
+          volumeSlider.blur();
+        }
+      }
+    }, { passive: true });
 
     container.appendChild(leftArrow);
     container.appendChild(rightArrow);
@@ -7971,6 +8320,7 @@
         { key: 'slideAnimations', label: t.slideAnimationsLabel, description: t.slideAnimationsDesc, default: CONFIG.slideAnimationEnabled },
         { key: 'showProgressBar', label: t.showProgressBarLabel || 'Show Progress Bar', description: t.showProgressBarDesc || 'Display timing progress line.', default: CONFIG.showProgressBar },
         { key: 'yoYoProgressBar', label: t.yoYoProgressBarLabel || 'Yo-Yo Progress Bar', description: t.yoYoProgressBarDesc || 'Empty progress bar from left to right on alternating slides instead of resetting.', default: CONFIG.yoYoProgressBar },
+        { key: 'showPaginationDots', label: t.showPaginationDotsLabel || 'Show Pagination Dots / Counter', description: t.showPaginationDotsDesc || 'Display the navigation dots or numeric slide counter at the bottom.', default: CONFIG.showPaginationDots },
         { key: 'forceSlideCounter', label: t.forceSlideCounterLabel || 'Always Use Slide Counter', description: t.forceSlideCounterDesc || 'Force numeric slide counter instead of pagination dots.', default: CONFIG.forceSlideCounter },
       ];
       const trailerSettings = [
@@ -7986,6 +8336,7 @@
       ];
       const layoutSettings = [
         { key: 'syncPageBackdrop', label: t.syncPageBackdropLabel || 'Sync Page Backdrop', description: t.syncPageBackdropDesc || 'Mirrors the featured slide background image into Jellyfin\'s page background.', default: CONFIG.syncPageBackdrop },
+        { key: 'enableBottomGradient', label: t.enableBottomGradientLabel || 'Enable Bottom Gradient', description: t.enableBottomGradientDesc || 'Smoothly fade the bottom edge of the media bar into Jellyfin\'s content (turn off for custom themes/skins).', default: CONFIG.enableBottomGradient !== false },
       ];
 
       let html = `
@@ -8051,6 +8402,29 @@
       }
 
       html += `
+    <div class="media-bar-select-container" id="mb-progressBarLocationContainer" style="margin-top: 0.5em; transition: opacity 0.2s ease;">
+        <div class="media-bar-select-info">
+            <span class="media-bar-select-label">${t.progressBarLocationLabel || 'Progress Bar Location'}</span>
+            <span class="media-bar-select-desc">${t.progressBarLocationDesc || 'Select where to render the slide progress bar.'}</span>
+        </div>
+        <select id="mb-setting-progressBarLocation" class="media-bar-select" tabindex="0">
+            <option value="Dots" ${this.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Dots' ? 'selected' : ''}>${t.progressBarLocationDots || 'Under Dots/Counter'}</option>
+            <option value="Inside" ${this.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Inside' ? 'selected' : ''}>${t.progressBarLocationInside || 'Inside Active Dot / Counter'}</option>
+            <option value="Navbar" ${this.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Navbar' ? 'selected' : ''}>${t.progressBarLocationNavbar || 'Top (Under Header)'}</option>
+        </select>
+    </div>
+
+    <div class="media-bar-select-container" id="mb-dotStyleContainer" style="margin-top: 0.5em; transition: opacity 0.2s ease;">
+        <div class="media-bar-select-info">
+            <span class="media-bar-select-label">${t.dotStyleLabel || 'Dot Style'}</span>
+            <span class="media-bar-select-desc">${t.dotStyleDesc || 'Choose active dot shape.'}</span>
+        </div>
+        <select id="mb-setting-dotStyle" class="media-bar-select" tabindex="0">
+            <option value="Round" ${this.getSetting('dotStyle', CONFIG.dotStyle) === 'Round' ? 'selected' : ''}>${t.optionDotStyleRound || 'Round (Classic)'}</option>
+            <option value="Pill" ${this.getSetting('dotStyle', CONFIG.dotStyle) === 'Pill' ? 'selected' : ''}>${t.optionDotStylePill || 'Pill / Capsule'}</option>
+        </select>
+    </div>
+
     <div class="media-bar-select-container" style="margin-top: 0.5em;">
         <div class="media-bar-select-info">
             <span class="media-bar-select-label">${t.activePlaylistLabel || 'Active Playlist'}</span>
@@ -8089,13 +8463,10 @@
             <span class="media-bar-select-label">${t.defaultTrailerVolumeLabel}</span>
             <span class="media-bar-select-desc">${t.defaultTrailerVolumeDesc}</span>
         </div>
-        <select id="mb-setting-defaultTrailerVolume" class="media-bar-select" tabindex="0">
-    `;
-      for (let vol = 10; vol <= 100; vol += 10) {
-        html += `<option value="${vol}" ${defaultVolumeVal === vol ? 'selected' : ''}>${vol}%</option>`;
-      }
-      html += `
-        </select>
+        <div class="media-bar-volume-setting-row">
+            <input type="range" id="mb-setting-defaultTrailerVolume" class="media-bar-volume-modal-slider" min="0" max="100" step="1" value="${defaultVolumeVal}" style="--volume-percent: ${defaultVolumeVal}%;" tabindex="0" />
+            <span id="mb-setting-defaultTrailerVolume-badge" class="media-bar-volume-badge">${defaultVolumeVal}%</span>
+        </div>
     </div>
         </div>
 
@@ -8172,17 +8543,6 @@
         </select>
     </div>
 
-    <div class="media-bar-select-container" id="mb-progressBarLocationContainer" style="margin-top: 0.5em; transition: opacity 0.2s ease;">
-        <div class="media-bar-select-info">
-            <span class="media-bar-select-label">${t.progressBarLocationLabel || 'Progress Bar Location'}</span>
-            <span class="media-bar-select-desc">${t.progressBarLocationDesc || 'Select where to render the slide progress bar.'}</span>
-        </div>
-        <select id="mb-setting-progressBarLocation" class="media-bar-select" tabindex="0">
-            <option value="Dots" ${this.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Dots' ? 'selected' : ''}>${t.progressBarLocationDots || 'Under Dots/Counter'}</option>
-            <option value="Navbar" ${this.getSetting('progressBarLocation', CONFIG.progressBarLocation) === 'Navbar' ? 'selected' : ''}>${t.progressBarLocationNavbar || 'Top (Under Header)'}</option>
-        </select>
-    </div>
-
     <div class="media-bar-toggle-container" style="margin-top: 0.5em;">
         <div class="media-bar-toggle-info">
             <span class="media-bar-toggle-label">${t.syncPageBackdropLabel || 'Sync Page Backdrop'}</span>
@@ -8190,6 +8550,17 @@
         </div>
         <label class="media-bar-switch" tabindex="0">
             <input id="mb-setting-syncPageBackdrop" type="checkbox" ${this.getSetting('syncPageBackdrop', CONFIG.syncPageBackdrop) ? 'checked' : ''} />
+            <span class="media-bar-slider"></span>
+        </label>
+    </div>
+
+    <div class="media-bar-toggle-container" style="margin-top: 0.5em;">
+        <div class="media-bar-toggle-info">
+            <span class="media-bar-toggle-label">${t.enableBottomGradientLabel || 'Enable Bottom Gradient'}</span>
+            <span class="media-bar-toggle-desc">${t.enableBottomGradientDesc || 'Smoothly fade the bottom edge of the media bar into Jellyfin\'s content (turn off for custom themes/skins).'}</span>
+        </div>
+        <label class="media-bar-switch" tabindex="0">
+            <input id="mb-setting-enableBottomGradient" type="checkbox" ${this.getSetting('enableBottomGradient', CONFIG.enableBottomGradient !== false) ? 'checked' : ''} />
             <span class="media-bar-slider"></span>
         </label>
     </div>
@@ -8420,6 +8791,11 @@
               const cont = document.getElementById('slides-container');
               if (cont) cont.classList.toggle('split-screen-trailer', e.target.checked);
             }
+            if (setting.key === 'showPaginationDots' || setting.key === 'forceSlideCounter') {
+              if (typeof SlideshowManager !== 'undefined') {
+                SlideshowManager.createPaginationDots();
+              }
+            }
           });
         }
       });
@@ -8446,6 +8822,17 @@
         });
       }
 
+      const dotStyleSelect = popup.querySelector('#mb-setting-dotStyle');
+      if (dotStyleSelect) {
+        dotStyleSelect.addEventListener('change', (e) => {
+          this.setSetting('dotStyle', e.target.value);
+          if (typeof SlideshowManager !== 'undefined') {
+            SlideshowManager.updateDots();
+            SlideshowManager.updateProgressBar(STATE.slideshow.isVideoPlaying, STATE.slideshow.currentSlideIndex);
+          }
+        });
+      }
+
       const transitionEffectSelect = popup.querySelector('#mb-setting-transitionEffect');
       if (transitionEffectSelect) {
         transitionEffectSelect.addEventListener('change', (e) => {
@@ -8453,28 +8840,71 @@
         });
       }
 
-      const defaultVolumeSelect = popup.querySelector('#mb-setting-defaultTrailerVolume');
-      defaultVolumeSelect.addEventListener('change', (e) => {
-        this.setSetting('defaultTrailerVolume', parseInt(e.target.value, 10));
-      });
+      const defaultVolumeSlider = popup.querySelector('#mb-setting-defaultTrailerVolume');
+      const defaultVolumeBadge = popup.querySelector('#mb-setting-defaultTrailerVolume-badge');
+      if (defaultVolumeSlider) {
+        defaultVolumeSlider.addEventListener('input', (e) => {
+          let val = parseInt(e.target.value, 10);
+          if (val < 4) {
+            val = 0;
+            defaultVolumeSlider.value = "0";
+          }
+          defaultVolumeSlider.style.setProperty('--volume-percent', `${val}%`);
+          if (defaultVolumeBadge) {
+            defaultVolumeBadge.textContent = `${val}%`;
+          }
+          if (val > 0) {
+            this.setSetting('defaultTrailerVolume', val);
+          }
+
+          // Trigger media bar slider directly to update video volume, player, and icon without duplicated code
+          const barSlider = document.querySelector('.media-bar-volume-slider');
+          if (barSlider) {
+            barSlider.value = String(val);
+            barSlider.dispatchEvent(new Event('input'));
+          }
+        });
+      }
 
       const progressBarLocationSelect = popup.querySelector('#mb-setting-progressBarLocation');
       if (progressBarLocationSelect) {
         progressBarLocationSelect.addEventListener('change', (e) => {
           this.setSetting('progressBarLocation', e.target.value);
+          if (typeof SlideshowManager !== 'undefined') {
+            SlideshowManager.updateDots();
+            SlideshowManager.updateProgressBar(STATE.slideshow.isVideoPlaying, STATE.slideshow.currentSlideIndex);
+          }
         });
       }
 
       const updateClientDependencies = () => {
         const showProgressBarCb = popup.querySelector('#mb-setting-showProgressBar');
-        const container = popup.querySelector('#mb-progressBarLocationContainer');
-        if (showProgressBarCb && container) {
-          if (showProgressBarCb.checked) {
-            container.style.opacity = '1';
-            container.style.pointerEvents = 'auto';
-          } else {
-            container.style.opacity = '0.4';
-            container.style.pointerEvents = 'none';
+        const progressLocContainer = popup.querySelector('#mb-progressBarLocationContainer');
+        const yoYoContainer = popup.querySelector('#mb-setting-yoYoProgressBar')?.closest('.media-bar-toggle-container');
+        if (showProgressBarCb) {
+          const isProg = showProgressBarCb.checked;
+          if (progressLocContainer) {
+            progressLocContainer.style.opacity = isProg ? '1' : '0.4';
+            progressLocContainer.style.pointerEvents = isProg ? 'auto' : 'none';
+          }
+          if (yoYoContainer) {
+            yoYoContainer.style.opacity = isProg ? '1' : '0.4';
+            yoYoContainer.style.pointerEvents = isProg ? 'auto' : 'none';
+          }
+        }
+
+        const showDotsCb = popup.querySelector('#mb-setting-showPaginationDots');
+        const forceCounterContainer = popup.querySelector('#mb-setting-forceSlideCounter')?.closest('.media-bar-toggle-container');
+        const dotStyleContainer = popup.querySelector('#mb-dotStyleContainer');
+        if (showDotsCb) {
+          const isDots = showDotsCb.checked;
+          if (forceCounterContainer) {
+            forceCounterContainer.style.opacity = isDots ? '1' : '0.4';
+            forceCounterContainer.style.pointerEvents = isDots ? 'auto' : 'none';
+          }
+          if (dotStyleContainer) {
+            dotStyleContainer.style.opacity = isDots ? '1' : '0.4';
+            dotStyleContainer.style.pointerEvents = isDots ? 'auto' : 'none';
           }
         }
       };
@@ -8483,7 +8913,18 @@
 
       const showProgressBarCb = popup.querySelector('#mb-setting-showProgressBar');
       if (showProgressBarCb) {
-        showProgressBarCb.addEventListener('change', updateClientDependencies);
+        showProgressBarCb.addEventListener('change', () => {
+          updateClientDependencies();
+          if (typeof SlideshowManager !== 'undefined') {
+            SlideshowManager.updateDots();
+            SlideshowManager.updateProgressBar(STATE.slideshow.isVideoPlaying, STATE.slideshow.currentSlideIndex);
+          }
+        });
+      }
+
+      const showPaginationDotsCb = popup.querySelector('#mb-setting-showPaginationDots');
+      if (showPaginationDotsCb) {
+        showPaginationDotsCb.addEventListener('change', updateClientDependencies);
       }
 
       // Reload Handler
@@ -8956,7 +9397,8 @@
   }
 
   function getEffectiveTrailerVolume() {
-    return parseInt(MediaBarEnhancedSettingsManager.getSetting('defaultTrailerVolume', CONFIG.defaultTrailerVolume), 10);
+    const vol = parseInt(MediaBarEnhancedSettingsManager.getSetting('defaultTrailerVolume', CONFIG.defaultTrailerVolume), 10);
+    return Number.isFinite(vol) ? vol : (parseInt(CONFIG.defaultTrailerVolume, 10) || 40);
   }
 
   /**
@@ -8973,6 +9415,14 @@
    */
   function isSplitScreenTrailerEnabled() {
     return MediaBarEnhancedSettingsManager.getSetting('splitScreenTrailer', CONFIG.enableSplitScreenTrailer);
+  }
+
+  /**
+   * Returns whether bottom fade gradient is enabled.
+   * @returns {boolean} Whether bottom fade gradient is active
+   */
+  function isBottomGradientEnabled() {
+    return MediaBarEnhancedSettingsManager.getSetting('enableBottomGradient', CONFIG.enableBottomGradient !== false);
   }
 
   /**
