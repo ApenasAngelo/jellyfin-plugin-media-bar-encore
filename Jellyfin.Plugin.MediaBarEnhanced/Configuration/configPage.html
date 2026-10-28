@@ -490,6 +490,16 @@
                                     </div>
                                     <div class="checkboxContainer checkboxContainer-withDescription">
                                         <label>
+                                            <input is="emby-checkbox" type="checkbox" id="EnableBottomGradient"
+                                                name="EnableBottomGradient" />
+                                            <span>Enable Bottom Fade Gradient</span>
+                                        </label>
+                                        <div class="fieldDescription">Applies a soft fade-out gradient to the bottom of
+                                            the media bar. Disable this if you use custom CSS themes or skins (like
+                                            ElegantFin) that look better with solid edges.</div>
+                                    </div>
+                                    <div class="checkboxContainer checkboxContainer-withDescription">
+                                        <label>
                                             <input is="emby-checkbox" type="checkbox" id="AlwaysShowArrows"
                                                 name="AlwaysShowArrows" />
                                             <span>Always Show Arrow Navigation</span>
@@ -551,6 +561,7 @@
                                         class="selectLayout emby-select-withcolor emby-select"
                                         style="width: 100%; -webkit-appearance: menulist; appearance: menulist;">
                                         <option value="Dots">Under Pagination Dots / Counter</option>
+                                        <option value="Inside">Inside Active Dot / Counter</option>
                                         <option value="Navbar">Top (Directly under Header/Navbar)</option>
                                     </select>
                                     <div class="fieldDescription">Choose where the slide timing progress bar is
@@ -1253,6 +1264,17 @@
                                     <div class="fieldDescription">Show or hide the pagination navigation at the bottom.
                                     </div>
                                 </div>
+                                <div class="selectContainer" id="DotStyleContainer" style="margin-top: 1.5em;">
+                                    <label class="selectLabel" for="DotStyle">Pagination Dot Style</label>
+                                    <select is="emby-select" id="DotStyle" name="DotStyle"
+                                        class="selectLayout emby-select-withcolor emby-select"
+                                        style="width: 100%; -webkit-appearance: menulist; appearance: menulist;">
+                                        <option value="Round">Round (Classic circles)</option>
+                                        <option value="Pill">Pill (Active dot extends into a capsule)</option>
+                                    </select>
+                                    <div class="fieldDescription">Choose whether the active pagination dot displays as a
+                                        classic circle or an elongated modern pill capsule.</div>
+                                </div>
                                 <div class="checkboxContainer checkboxContainer-withDescription"
                                     style="margin-top: 1.5em;">
                                     <label>
@@ -1483,7 +1505,8 @@
                             'BackdropVideoDelay', 'TrailerStartOffset', 'TrailerEndOffset', 'ConstrainPlotWidth', 'MobileCompactMode',
                             'DefaultTrailerVolume', 'HoverAudioFadeMs', 'ClientMenuLocation', 'ClientMenuLocationMobile',
                             'CustomPlaylists', 'TransitionEffect', 'ShowProgressBar', 'ProgressBarLocation', 'ExcludedLibraries',
-                            'TrailerEnabledLibraries', 'YoYoProgressBar', 'SyncPageBackdrop', 'UseRecommendations', 'RequireLogo'
+                            'TrailerEnabledLibraries', 'YoYoProgressBar', 'SyncPageBackdrop', 'UseRecommendations', 'RequireLogo',
+                            'EnableBottomGradient', 'DotStyle'
                         ];
 
                         // Manual mapping for MediaBarIsEnabled -> IsEnabled, to avoid conflicts with other plugins
@@ -1898,7 +1921,8 @@
                         'BackdropVideoDelay', 'TrailerStartOffset', 'TrailerEndOffset', 'ConstrainPlotWidth', 'MobileCompactMode',
                         'DefaultTrailerVolume', 'HoverAudioFadeMs', 'ClientMenuLocation', 'ClientMenuLocationMobile',
                         'CustomPlaylists', 'TransitionEffect', 'ShowProgressBar', 'ProgressBarLocation', 'ExcludedLibraries',
-                        'TrailerEnabledLibraries', 'YoYoProgressBar', 'SyncPageBackdrop', 'UseRecommendations', 'RequireLogo'
+                        'TrailerEnabledLibraries', 'YoYoProgressBar', 'SyncPageBackdrop', 'UseRecommendations', 'RequireLogo',
+                        'EnableBottomGradient', 'DotStyle'
                     ];
 
                     var numberDefaults = {

@@ -285,14 +285,136 @@ body.dashboardDocument #slides-container {
   opacity: 0.3;
   transition: opacity 0.3s ease;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+}
+
+/* Invisible hit bridge ensuring smooth, gapless mouse travel between speaker icon and slider capsule */
+.mute-button::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  right: -8px;
+  left: -8px;
+  z-index: 0;
+}
+
+.mute-button:hover::before,
+.mute-button:focus-visible::before,
+:is(.layout-tv, .media-bar-tv-mode) .mute-button:focus::before,
+.mute-button.slider-active::before {
+  left: -24px;
 }
 
 .mute-button i {
+  position: relative;
+  z-index: 1;
   font-size: 1.5rem;
+  pointer-events: none;
 }
 
-.mute-button:hover {
-  opacity: 0.9;
+.mute-button:hover,
+.mute-button:focus-visible,
+:is(.layout-tv, .media-bar-tv-mode) .mute-button:focus,
+.mute-button.slider-active {
+  opacity: 0.95;
+}
+
+/* Volume Slider wrapper attached to the left of the speaker icon */
+.media-bar-volume-wrap {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0;
+  height: 32px;
+  border-radius: 16px;
+  background: rgba(18, 18, 18, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) 0.15s, opacity 0.2s ease 0.15s, padding 0.25s ease 0.15s, border-color 0.2s ease 0.15s;
+  margin-right: 8px;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+/* Reveal slider when hovering over speaker (always, whether muted or unmuted) or active on touch */
+.mute-button:hover .media-bar-volume-wrap,
+.mute-button:focus-visible .media-bar-volume-wrap,
+.mute-button:has(.media-bar-volume-slider:focus-visible) .media-bar-volume-wrap,
+:is(.layout-tv, .media-bar-tv-mode) .mute-button:focus .media-bar-volume-wrap,
+.mute-button.slider-active .media-bar-volume-wrap {
+  width: 104px;
+  padding: 0 12px;
+  border-color: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.media-bar-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #00a4dc 0%, #00a4dc var(--volume-percent, 40%), rgba(255, 255, 255, 0.25) var(--volume-percent, 40%), rgba(255, 255, 255, 0.25) 100%);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.05s linear;
+  margin: 0;
+  padding: 0;
+}
+
+.media-bar-volume-slider:hover {
+  background: linear-gradient(to right, #2cc4f8 0%, #2cc4f8 var(--volume-percent, 40%), rgba(255, 255, 255, 0.35) var(--volume-percent, 40%), rgba(255, 255, 255, 0.35) 100%);
+}
+
+.media-bar-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 164, 220, 0.8);
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.media-bar-volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  background: #2cc4f8;
+}
+
+.media-bar-volume-slider::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+.media-bar-volume-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 164, 220, 0.8);
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.media-bar-volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+  background: #2cc4f8;
 }
 
 /* Jellyfin v12 Desktop Overrides */
@@ -485,6 +607,17 @@ body.jellyfin-v12 .mute-button i {
       #fff0 0%,
       #fff0 10%,
       #000 25%);
+}
+
+/* Option to remove the bottom fade gradient for compatibility with custom skins */
+#slides-container.no-bottom-gradient .backdrop-container,
+#slides-container.no-bottom-gradient .backdrop-overlay,
+#slides-container.no-bottom-gradient .gradient-overlay,
+body.media-bar-no-bottom-gradient .backdrop-container,
+body.media-bar-no-bottom-gradient .backdrop-overlay,
+body.media-bar-no-bottom-gradient .gradient-overlay {
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
 }
 
 .logo-container {
@@ -1508,6 +1641,24 @@ body.jellyfin-v12 .mute-button i {
   .genre,
   .plot-container {
     left: 5vw;
+  }
+}
+
+@media only screen and (min-width: 2000px) {
+  .pause-button {
+    top: 6rem;
+  }
+
+  .mute-button {
+    top: 6rem;
+  }
+
+  body.jellyfin-v12 .pause-button {
+    top: 5.6rem;
+  }
+
+  body.jellyfin-v12 .mute-button {
+    top: 5.6rem;
   }
 }
 
@@ -2701,6 +2852,82 @@ select.media-bar-select option {
   color: #ffffff !important;
 }
 
+/* Client Settings Modal Volume Slider */
+.media-bar-volume-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 0.4em;
+  box-sizing: border-box;
+}
+
+.media-bar-volume-modal-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #00a4dc 0%, #00a4dc var(--volume-percent, 40%), rgba(255, 255, 255, 0.2) var(--volume-percent, 40%), rgba(255, 255, 255, 0.2) 100%);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.05s linear;
+  margin: 0;
+  padding: 0;
+}
+
+.media-bar-volume-modal-slider:focus {
+  box-shadow: 0 0 0 2px rgba(0, 164, 220, 0.4);
+}
+
+:is(.layout-tv, .media-bar-tv-mode) .media-bar-volume-modal-slider:focus {
+  outline: 2px solid var(--jf-palette-primary-main, #00a4dc) !important;
+  outline-offset: 3px !important;
+}
+
+.media-bar-volume-modal-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 4px rgba(0, 164, 220, 0.8);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.media-bar-volume-modal-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #2cc4f8;
+}
+
+.media-bar-volume-modal-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 4px rgba(0, 164, 220, 0.8);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.media-bar-volume-modal-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  background: #2cc4f8;
+}
+
+.media-bar-volume-badge {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #00a4dc;
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
 /* Button layout */
 .media-bar-settings-buttons {
   margin-top: 1.4em;
@@ -2915,6 +3142,74 @@ select.media-bar-select option {
   border-radius: 2.5px;
 }
 
+/* Inline Progress Bar inside Active Dot / Counter */
+.progress-bar-inside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.progress-bar-inside .media-bar-progress-fill {
+  border-radius: 0;
+}
+
+.dots-container.dots-style-pill .dot,
+.dots-container.progress-inside .dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  transform: none !important;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+}
+
+/* active dot-pill */
+.dots-container.dots-style-pill .dot.active,
+.dots-container.progress-inside .dot.active {
+  width: 45px;
+  height: 6px;
+  border-radius: 9999px;
+  transform: none !important;
+  background-color: #ffffff;
+}
+
+.dots-container.progress-inside .dot.active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.dots-container.progress-inside .dot.active .progress-bar-inside .media-bar-progress-fill {
+  background-color: #ffffff;
+}
+
+.dots-container.progress-inside .slide-counter {
+  position: relative;
+  overflow: hidden;
+}
+
+.dots-container.progress-inside .slide-counter .slide-counter-text {
+  position: relative;
+  z-index: 2;
+}
+
+.dots-container.progress-inside .slide-counter .progress-bar-inside {
+  z-index: 1;
+}
+
+.dots-container.progress-inside .slide-counter .progress-bar-inside .media-bar-progress-fill,
+.slide-counter .progress-bar-inside .media-bar-progress-fill {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 0;
+}
+
+
 .media-bar-progress-bar.animating .media-bar-progress-fill {
   animation-name: mediaBarProgress;
   animation-timing-function: linear;
@@ -3127,6 +3422,23 @@ body:has(.videoPlayerContainer-onTop) .media-bar-settings-button {
     -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 2%, black 10%, black 100%),
       linear-gradient(to top, transparent 0%, transparent 2%, black 10%) !important;
     filter: drop-shadow(-12px 0 30px rgba(0, 0, 0, 0.9));
+  }
+
+  /* Split-screen trailer when bottom gradient is disabled: preserve horizontal fade without vertical bottom fade */
+  #slides-container.no-bottom-gradient.split-screen-trailer .video-backdrop,
+  #slides-container.no-bottom-gradient.split-screen-trailer .slide.has-video.active .video-backdrop,
+  body.media-bar-no-bottom-gradient #slides-container.split-screen-trailer .video-backdrop,
+  body.media-bar-no-bottom-gradient #slides-container.split-screen-trailer .slide.has-video.active .video-backdrop {
+    mask-image: linear-gradient(to right, transparent 0%, transparent 12%, black 48%, black 100%) !important;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 12%, black 48%, black 100%) !important;
+  }
+
+  #slides-container.no-bottom-gradient.split-screen-trailer .video-backdrop:hover,
+  #slides-container.no-bottom-gradient.split-screen-trailer .slide.video-hovered .video-backdrop,
+  body.media-bar-no-bottom-gradient #slides-container.split-screen-trailer .video-backdrop:hover,
+  body.media-bar-no-bottom-gradient #slides-container.split-screen-trailer .slide.video-hovered .video-backdrop {
+    mask-image: linear-gradient(to right, transparent 0%, transparent 2%, black 10%, black 100%) !important;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 2%, black 10%, black 100%) !important;
   }
 
   /* Dim background image while hovering over the video so the video takes full focus (only while playing) */

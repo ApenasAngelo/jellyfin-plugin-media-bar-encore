@@ -124,13 +124,46 @@ jobs:
           commit_message: "Update manifest.json for release v${{ env.VERSION }} [skip ci]"
           file_pattern: manifest.json
 
+      - name: Fetch PR Details for Release Notes
+        if: steps.check_release.outputs.release_exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Try finding PR associated with current commit
+          PR_JSON=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls --jq '.[0] // empty')
+          
+          # 2. Fallback to latest merged PR into main if empty
+          if [ -z "$PR_JSON" ]; then
+            PR_JSON=$(gh pr list --repo ${{ github.repository }} --state merged --base main --limit 1 --json title,body --jq '.[0] // empty')
+          fi
+          
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.title // empty')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.body // empty')
+          
+          # 3. Construct formatted release notes: PR title at top, then Changelog header, then PR body
+          if [ -n "$PR_TITLE" ] && [ -n "$PR_BODY" ]; then
+            # Strip redundant top "## Release v..." line from body if present
+            CLEAN_BODY=$(printf '%s\n' "$PR_BODY" | sed -E '1{/^##[[:space:]]+Release/d}')
+            RELEASE_NOTES=$(printf "# %s\n\n## 📋 Changelog\n\n%s" "$PR_TITLE" "$CLEAN_BODY")
+          elif [ -n "$PR_BODY" ]; then
+            RELEASE_NOTES=$(printf "# Release v%s\n\n## 📋 Changelog\n\n%s" "${{ env.VERSION }}" "$PR_BODY")
+          else
+            echo "No PR found, falling back to manifest changelog."
+            RELEASE_NOTES=$(printf "# Release v%s\n\n## 📋 Changelog\n\n%s" "${{ env.VERSION }}" "${{ env.CHANGELOG }}")
+          fi
+          
+          DELIMITER="EOF_RELEASE_$(date +%s)"
+          echo "RELEASE_BODY<<${DELIMITER}" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "${DELIMITER}" >> $GITHUB_ENV
+
       - name: Create Release
         if: steps.check_release.outputs.release_exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ env.VERSION }}"
           name: "v${{ env.VERSION }}"
-          # body: ${{ env.CHANGELOG }}
+          body: ${{ env.RELEASE_BODY }}
           files: ${{ env.ZIP_PATH }}
           draft: false
           prerelease: false
