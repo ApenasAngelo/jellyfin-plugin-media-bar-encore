@@ -18,7 +18,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
     {
         private readonly IApplicationPaths _appPaths;
         private readonly ILogger<ScriptInjector> _logger;
-        public const string ScriptTag = "<script src=\"../MediaBarEnhanced/Resources/mediaBarEnhanced.js\" defer></script>";
+        public const string ScriptTag = "<script src=\"../MediaBarEnhanced/Resources/mediaBarEnhanced.js\" defer></script><script src=\"../MediaBarEnhanced/Resources/encore/encore.js\" defer></script>"; // Encore: also load our additions
         public const string CssTag = "<link rel=\"stylesheet\" href=\"../MediaBarEnhanced/Resources/mediaBarEnhanced.css\" />";
         public const string ScriptMarker = "</body>";
         public const string CssMarker = "</head>";
