@@ -1,0 +1,9 @@
+{
+  "category": "General",
+  "description": "Fork of Media Bar Enhanced (CodeDevMLH), itself a fork of MakD's Media Bar. Same full-width slideshow with trailer backdrops, plus Encore additions: the slideshow and trailer pause while the banner is scrolled out of view. Requires File Transformation when the web files are read-only.",
+  "guid": "a3c6e2f4-8b1d-4e7a-9c5f-6d2b8e4a1f37",
+  "name": "Media Bar Encore",
+  "overview": "Immersive home screen slideshow with video backdrops (fork of Media Bar Enhanced).",
+  "owner": "ApenasAngelo",
+  "targetAbi": "10.11.0.0"
+}
