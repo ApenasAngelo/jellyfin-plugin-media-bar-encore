@@ -10,10 +10,10 @@ It keeps everything Media Bar Enhanced does and adds what our server needs. The 
 
 | Change | Status |
 |---|---|
-| Own plugin GUID, name and assembly, so it installs side by side with (or instead of) Media Bar Enhanced and never receives upstream updates by accident | planned |
-| Pause the trailer when the banner scrolls out of view (`IntersectionObserver`) | planned |
+| Own plugin GUID, name and assembly, so it never receives upstream updates by accident. It replaces Media Bar Enhanced: both serve the same `/MediaBarEnhanced` routes, so **uninstall Media Bar Enhanced first** (its settings XML can be copied to `Jellyfin.Plugin.MediaBarEncore.xml`) | done |
+| Pause the slideshow and the trailer while the banner is scrolled out of view, and resume when it comes back (`IntersectionObserver`) | done |
 | Media Bar on the library pages (Movies, Shows, mixed libraries) and on collection pages, not only on Home | planned |
-| Plays well with [Home Screen Sections Encore](https://github.com/ApenasAngelo/jellyfin-plugin-home-sections-encore) | planned |
+| Plays well with [Home Screen Sections Encore](https://github.com/ApenasAngelo/jellyfin-plugin-home-sections-encore) | done |
 
 Everything below the installation section is the upstream documentation, which still applies to Encore (some settings still read "Media Bar Enhanced" until they are renamed).
 
@@ -151,7 +151,7 @@ This plugin builds upon the original Media Bar with new capabilities and improve
 
 ## Installation
 
-Encore is distributed through our plugin repository (releases are not published yet):
+Encore is distributed through our plugin repository:
 
 1. In Jellyfin, go to **Dashboard → Plugins → Repositories** and add
    `https://raw.githubusercontent.com/ApenasAngelo/jellyfin-plugins/main/manifest.json`
