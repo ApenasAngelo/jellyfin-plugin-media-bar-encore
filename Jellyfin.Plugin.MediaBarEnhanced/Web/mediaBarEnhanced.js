@@ -30,7 +30,7 @@
   window.mediaBarEnhancedLoaded = true;
 
   // MARK: Version
-  const PLUGIN_VERSION = "3.11.0.0";
+  const PLUGIN_VERSION = "3.11.1.0";
 
   //Core Module Configuration
   const CONFIG = {
@@ -7649,6 +7649,9 @@
 
       if (newVol > 0) {
         MediaBarEnhancedSettingsManager.setSetting('defaultTrailerVolume', newVol);
+        try {
+          localStorage.setItem('mediaBarEnhanced-defaultTrailerVolume', newVol);
+        } catch (e) { }
       }
 
       const currentItemId = STATE.slideshow.itemIds[STATE.slideshow.currentSlideIndex];
@@ -9403,7 +9406,16 @@
   }
 
   function getEffectiveTrailerVolume() {
-    const vol = parseInt(MediaBarEnhancedSettingsManager.getSetting('defaultTrailerVolume', CONFIG.defaultTrailerVolume), 10);
+    let vol = parseInt(MediaBarEnhancedSettingsManager.getSetting('defaultTrailerVolume', null), 10);
+    if (!Number.isFinite(vol)) {
+      try {
+        const stored = localStorage.getItem('mediaBarEnhanced-defaultTrailerVolume');
+        if (stored !== null) {
+          const parsed = parseInt(stored, 10);
+          if (Number.isFinite(parsed)) vol = parsed;
+        }
+      } catch (e) { }
+    }
     return Number.isFinite(vol) ? vol : (parseInt(CONFIG.defaultTrailerVolume, 10) || 40);
   }
 
