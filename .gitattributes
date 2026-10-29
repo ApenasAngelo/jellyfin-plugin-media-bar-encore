@@ -1,0 +1,2 @@
+# Encore: o README do fork sempre vence nos merges da main (rodar uma vez: git config merge.ours.driver true)
+README.md merge=ours
