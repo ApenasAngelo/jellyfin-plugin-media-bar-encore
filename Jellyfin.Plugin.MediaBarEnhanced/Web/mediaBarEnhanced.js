@@ -861,16 +861,19 @@
    * Creates and displays loading screen
    */
 
-  const initLoadingScreen = () => {
+  const isOnHomePage = () => {
     const currentPath = window.location.href.toLowerCase().replace(window.location.origin, "");
-    const isHomePage =
+    return (
       currentPath.includes("/web/#/home.html") ||
       currentPath.includes("/web/#/home") ||
       currentPath.includes("/web/index.html#/home.html") ||
       currentPath === "/web/index.html#/home" ||
-      currentPath.endsWith("/web/");
+      currentPath.endsWith("/web/")
+    );
+  };
 
-    if (!isHomePage) return;
+  const initLoadingScreen = () => {
+    if (!isOnHomePage()) return;
 
     // Check LocalStorage for cached preference to avoid flash
     const cachedSetting = localStorage.getItem('mediaBarEnhanced-enableLoadingScreen');
@@ -919,6 +922,12 @@
     }, 150);
 
     const checkInterval = setInterval(() => {
+      // Poll the URL so we also catch navigation that fires no hashchange/popstate.
+      if (!isOnHomePage()) {
+        finishLoading();
+        return;
+      }
+
       const loginFormLoaded = document.querySelector(".manualLoginForm");
       const activeTab = document.querySelector(".pageTabContent.is-active");
 
@@ -976,12 +985,9 @@
       });
     };
 
-    // If the user navigates away from home before loading finishes, tear the
-    // overlay down immediately instead of leaving it running/visible on other pages.
+    // Fast path; the checkInterval poll above is the fallback.
     const leavePageHandler = () => {
-      const hash = window.location.hash.toLowerCase();
-      const stillHome = hash === "#/home.html" || hash === "#/home" || hash === "";
-      if (!stillHome) {
+      if (!isOnHomePage()) {
         finishLoading();
       }
     };
