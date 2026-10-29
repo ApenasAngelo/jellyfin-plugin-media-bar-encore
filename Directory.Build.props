@@ -1,0 +1,7 @@
+<Project>
+  <!-- Encore: own assembly name (and so its own config XML), without editing the upstream .csproj.
+       RootNamespace is set in the .csproj and stays the upstream one: the embedded resources are found by it. -->
+  <PropertyGroup>
+    <AssemblyName>Jellyfin.Plugin.MediaBarEncore</AssemblyName>
+  </PropertyGroup>
+</Project>

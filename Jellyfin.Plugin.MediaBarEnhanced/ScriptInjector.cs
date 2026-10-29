@@ -184,7 +184,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
 
             {
                 JObject payload = new JObject();
-                payload.Add("id", "0dfac9d7-d898-4944-900b-1c1837707279"); 
+                payload.Add("id", "f1a723d5-2dee-4f28-a569-6e3eb3547dde"); // Encore: own transformation ID
                 payload.Add("fileNamePattern", "index.html");
                 payload.Add("callbackAssembly", GetType().Assembly.FullName);
                 payload.Add("callbackClass", typeof(TransformationPatches).FullName);
@@ -234,7 +234,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
 
                     if (pluginInterfaceType != null)
                     {
-                        Guid id = Guid.Parse("0dfac9d7-d898-4944-900b-1c1837707279");
+                        Guid id = Guid.Parse("f1a723d5-2dee-4f28-a569-6e3eb3547dde"); // Encore: own transformation ID
                         pluginInterfaceType.GetMethod("RemoveTransformation")?.Invoke(null, new object?[] { id });
                         _logger.LogInformation("File transformation unregistered successfully.");
                     }

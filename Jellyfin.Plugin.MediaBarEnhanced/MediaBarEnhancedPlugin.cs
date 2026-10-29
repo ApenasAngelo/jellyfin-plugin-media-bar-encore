@@ -58,10 +58,10 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
         }
 
         /// <inheritdoc />
-        public override string Name => "Media Bar Enhanced";
+        public override string Name => "Media Bar Encore"; // Encore: own name
 
         /// <inheritdoc />
-        public override Guid Id => Guid.Parse("d7e11d57-819b-4bdd-a88d-53c5f5560225");
+        public override Guid Id => Guid.Parse("a3c6e2f4-8b1d-4e7a-9c5f-6d2b8e4a1f37"); // Encore: own GUID
 
         /// <summary>
         /// Gets the current plugin instance.
@@ -76,7 +76,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced
                 new PluginPageInfo
                 {
                     Name = Name,
-                    DisplayName = "Media Bar Enhanced",
+                    DisplayName = "Media Bar Encore", // Encore: own name
                     EnableInMainMenu = true,
                     MenuIcon = "view_carousel",
                     EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.configPage.html", GetType().Namespace)
