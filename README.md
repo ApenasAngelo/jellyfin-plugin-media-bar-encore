@@ -1,15 +1,25 @@
-# Jellyfin Media Bar Enhanced Plugin
+# Jellyfin Media Bar Encore Plugin
 
-**Media Bar Enhanced (MBE)** is a plugin for Jellyfin that introduces a customizable and interactive media bar to your dashboard view on Jellyfin web.
+![Jellyfin Media Bar Encore](encore/banner.png)
 
-This plugin is a fork and enhancement of the original [Media Bar by MakD](https://github.com/MakD/Jellyfin-Media-Bar) and my previous work on [Jellyfin-Featured-Content-Bar](https://github.com/CodeDevMLH/Jellyfin-Featured-Content-Bar), but can be installed as plugin for easier installation and management/configuration.
+**Media Bar Encore** is a fork of [Media Bar Enhanced](https://github.com/CodeDevMLH/jellyfin-plugin-media-bar-enhanced) by CodeDevMLH, which is itself a fork of the original [Media Bar by MakD](https://github.com/MakD/Jellyfin-Media-Bar). *Encore* means "once more": first the Media Bar, then Enhanced, now Encore.
 
-![logo](https://raw.githubusercontent.com/CodeDevMLH/jellyfin-plugin-media-bar-enhanced/main/logo.png)
+It keeps everything Media Bar Enhanced does and adds what our server needs. The fork follows upstream closely: `main` mirrors upstream `main`, and our work lives on the `encore` branch, merged from `main` whenever upstream releases. New behaviour goes into new files whenever possible, so syncing stays cheap.
 
----
+## What's different in Encore
+
+| Change | Status |
+|---|---|
+| Own plugin GUID, name and assembly, so it installs side by side with (or instead of) Media Bar Enhanced and never receives upstream updates by accident | planned |
+| Pause the trailer when the banner scrolls out of view (`IntersectionObserver`) | planned |
+| Media Bar on the library pages (Movies, Shows, mixed libraries) and on collection pages, not only on Home | planned |
+| Plays well with [Home Screen Sections Encore](https://github.com/ApenasAngelo/jellyfin-plugin-home-sections-encore) | planned |
+
+Everything below the installation section is the upstream documentation, which still applies to Encore (some settings still read "Media Bar Enhanced" until they are renamed).
 
 ## Table of Contents
-- [Jellyfin Media Bar Enhanced Plugin](#jellyfin-media-bar-enhanced-plugin)
+- [Jellyfin Media Bar Encore Plugin](#jellyfin-media-bar-encore-plugin)
+  - [What's different in Encore](#whats-different-in-encore)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Features](#features)
@@ -141,20 +151,15 @@ This plugin builds upon the original Media Bar with new capabilities and improve
 
 ## Installation
 
-This plugin is based on Jellyfin Version `10.11.x`
+Encore is distributed through our plugin repository (releases are not published yet):
 
-1.  Open your **Jellyfin Dashboard**.
-2.  Navigate to **Plugins** > **Repositories**.
-3.  Click the **+** button to add a new repository.
-4.  Enter a name for the repo and paste the following URL:
-    ```
-    https://raw.githubusercontent.com/CodeDevMLH/jellyfin-plugin-manifest/refs/heads/main/manifest.json
-    ```
-5.  Click **Save**.
-6.  Go to the **Catalog** tab.
-7.  Find **Media Bar Enhanced** (Under **General**) and install it.
-8.  **Restart your Jellyfin server.**
-9.  **Refresh your browser** (Ctrl+F5) to load the new interface elements.
+1. In Jellyfin, go to **Dashboard → Plugins → Repositories** and add
+   `https://raw.githubusercontent.com/ApenasAngelo/jellyfin-plugins/main/manifest.json`
+2. Install **Media Bar Encore** from the **Catalog**.
+3. If Media Bar Enhanced is installed, disable it in its settings, uninstall it, and restart Jellyfin (see [Uninstall](#uninstall)).
+4. Restart Jellyfin and refresh the browser.
+
+[File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) is recommended for Docker setups where `index.html` is read-only.
 
 ## Client Compatibility
 
@@ -324,15 +329,12 @@ Fine-tune performance by limiting the number of items fetched from the server an
 
 ## Build The Plugin By Yourself
 
-If you want to build the plugin yourself:
-
-1.  Clone the repository.
-2.  Ensure you have the .NET SDK installed (NET 8 or 9 depending on your Jellyfin version).
-3.  Run the build command:
-    ```powershell
+1.  Clone the repository and switch to the `encore` branch.
+2.  Build with the .NET SDK (in a container is fine, e.g. `mcr.microsoft.com/dotnet/sdk`):
+    ```bash
     dotnet build Jellyfin.Plugin.MediaBarEnhanced/Jellyfin.Plugin.MediaBarEnhanced.csproj --configuration Release --output bin/Publish
     ```
-4.  The compiled DLL and resources will be in bin/Publish.
+3.  The compiled DLL and resources will be in `bin/Publish`.
 
 ## Troubleshooting
 
@@ -451,13 +453,14 @@ To cleanly uninstall the plugin and ensure all injected scripts (Direct Injectio
 
 ## Credits
 
-This project is based on the original [Jellyfin Media Bar by MakD](https://github.com/MakD/Jellyfin-Media-Bar) and incorporates concepts from [IAmParadox27's plugin fork](https://github.com/IAmParadox27/jellyfin-plugin-media-bar). Thanks for their work!
+Media Bar Encore stands on the work of:
 
-Also, special thanks to IAmParadox27 for the [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) which this plugin can optionally use for improved Docker compatibility.
+- [CodeDevMLH](https://github.com/CodeDevMLH) and the contributors of [Media Bar Enhanced](https://github.com/CodeDevMLH/jellyfin-plugin-media-bar-enhanced), which this fork follows;
+- [MakD](https://github.com/MakD) and the contributors of the original [Jellyfin Media Bar](https://github.com/MakD/Jellyfin-Media-Bar);
+- [IAmParadox27](https://github.com/IAmParadox27) for the [plugin fork](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) and the [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation).
+
+Licensed under the GNU GPL v3, like the projects it comes from.
 
 ## Contributing
 
-Feel free to contribute to this project by creating pull requests or reporting issues.
-
-> [!NOTE]
-> **Guidelines for Pull Requests:** Please do **not** change version numbers in `manifest.json` or `.csproj` files in your Pull Requests. New releases and version updates are created exclusively by the repository maintainers.
+This fork is tailored to a personal server. Bugs that also exist upstream belong in the [Media Bar Enhanced issues](https://github.com/CodeDevMLH/jellyfin-plugin-media-bar-enhanced/issues); issues specific to Encore are welcome here.
