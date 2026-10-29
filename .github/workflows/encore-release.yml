@@ -1,11 +1,11 @@
-# Encore: builds the plugin zip for a vX.Y.Z.W tag and publishes it as a GitHub release.
+# Encore: builds the plugin zip for an encore-vX.Y.Z.W tag (upstream already uses vX.Y.Z.W) and publishes it as a GitHub release.
 # The changelog is the annotated tag message. The plugin repository manifest
 # (ApenasAngelo/jellyfin-plugins) picks the release up on its own schedule.
 name: Encore release
 
 on:
   push:
-    tags: ['v*']
+    tags: ['encore-v*']
 
 permissions:
   contents: write
@@ -25,7 +25,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Build
-        run: dotnet build "$PROJECT" -c Release -o build -p:Version=${GITHUB_REF_NAME#v} $BUILD_ARGS
+        run: dotnet build "$PROJECT" -c Release -o build -p:Version=${GITHUB_REF_NAME#encore-v} $BUILD_ARGS
 
       - name: Package
         run: |
@@ -33,10 +33,10 @@ jobs:
           git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
           git tag -l --format='%(contents)' "$tag" | sed '/^-----BEGIN PGP/,$d' > changelog.md
           name=$(basename build/*.deps.json .deps.json)
-          jq --arg v "${tag#v}" --rawfile c changelog.md --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          jq --arg v "${tag#encore-v}" --rawfile c changelog.md --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             '. + {version: $v, changelog: ($c | rtrimstr("\n")), timestamp: $t}' encore/meta.json > build/meta.json
-          (cd build && zip "../$name-${tag#v}.zip" "$name.dll" "$name.pdb" "$name.deps.json" logo.png meta.json)
-          echo "ZIP=$name-${tag#v}.zip" >> "$GITHUB_ENV"
+          (cd build && zip "../$name-${tag#encore-v}.zip" "$name.dll" "$name.pdb" "$name.deps.json" logo.png meta.json)
+          echo "ZIP=$name-${tag#encore-v}.zip" >> "$GITHUB_ENV"
 
       - name: Release
         env:
