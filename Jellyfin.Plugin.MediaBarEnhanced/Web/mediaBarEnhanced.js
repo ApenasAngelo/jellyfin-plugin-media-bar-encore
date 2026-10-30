@@ -2443,6 +2443,7 @@
         const requireLogo = MediaBarEnhancedSettingsManager.getSetting('requireLogo', CONFIG.requireLogo);
 
         const fetchItems = async (currentDateFilter, parentId = '') => {
+          parentId = window.mediaBarEncoreView?.()?.parent || parentId; // Encore: the slides of a library page come from it
           const parentParam = parentId ? `&parentId=${parentId}` : '';
           const fetchLimit = (CONFIG.sortBy === 'RecentlyAddedWeighted')
             ? Math.max((CONFIG.maxItems || 10) * 8, 80)
@@ -3766,7 +3767,7 @@
       if (!container) return;
 
       const currentHash = (window.location.hash || "").toLowerCase();
-      const isHome = (currentHash === "#/home.html" || currentHash === "#/home" || currentHash === "#!/home.html" || currentHash === "#!/home") &&
+      const isHome = (currentHash === "#/home.html" || currentHash === "#/home" || currentHash === "#!/home.html" || currentHash === "#!/home" || window.mediaBarEncoreView?.() /* Encore: library pages */) &&
         !document.body.classList.contains("dashboardDocument");
 
       const activeTab = document.querySelector(".emby-tab-button-active");
@@ -3945,7 +3946,7 @@
 
     update(itemId) {
       const isSyncEnabled = MediaBarEnhancedSettingsManager.getSetting('syncPageBackdrop', CONFIG.syncPageBackdrop);
-      const isHome = (window.location.hash === "#/home.html" || window.location.hash === "#/home");
+      const isHome = (window.location.hash === "#/home.html" || window.location.hash === "#/home" || window.mediaBarEncoreView?.()); // Encore: library pages
       if (!isSyncEnabled || !isHome) {
         this.clear();
         return;
@@ -6678,7 +6679,7 @@
         const isBodyFocused = activeElement === document.body;
         const isContainerFocused = activeElement === container;
         const isInsideContainer = container ? container.contains(activeElement) : false;
-        const isHomeView = window.location.hash === '#/home.html' || window.location.hash === '#/home' || !window.location.hash;
+        const isHomeView = window.location.hash === '#/home.html' || window.location.hash === '#/home' || !window.location.hash || window.mediaBarEncoreView?.(); // Encore: library pages
         const canControlSlideshow = isContainerFocused || isInsideContainer || isBodyFocused || (isTv && isHomeView);
 
         const key = e.key || "";

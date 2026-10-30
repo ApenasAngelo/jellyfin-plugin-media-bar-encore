@@ -66,4 +66,5 @@ desenvolvimento é feito pela sessão **ops** (não há sessão de Remote Contro
 ## Pendências do fork
 
 - S8: pausar o trailer quando o banner sai da tela (`IntersectionObserver`), em arquivo novo.
-- Fase 3: Media Bar nas abas (Filmes, Séries, Animes) e na página de coleção.
+- Fase 3 (feita, 2026-10-30): nas páginas `#/home?topParentId=` os slides vêm da biblioteca ou coleção (`mediaBarEncoreView` em `encore/encore.js`; a aba Coleções usa os da home). O pedido por item (`Fields=`) não mudou: o filtro do Caddy casa por conteúdo.
+- Trocar de página leva de 4 a 6 s até o primeiro slide, sem indicação de carregamento: ver na fase 4.

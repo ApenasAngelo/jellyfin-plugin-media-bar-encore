@@ -12,6 +12,84 @@
   window.mediaBarEncoreLoaded = true;
 
   /*
+   * Library and collection pages are the home page at #/home?topParentId=<id> (Home Screen Sections Encore). The slides come
+   * from that library or collection; the Collections page itself has no titles of its own and keeps the slides of the home.
+   */
+  function pageOf(hash) {
+    if (!/^#\/home\?/.test(hash)) {
+      return null;
+    }
+    var query = new URLSearchParams(hash.split('?')[1]);
+    if (!query.has('topParentId') || query.has('tab')) {
+      return null;
+    }
+    return { parent: query.get('encoreCollection') || (query.has('encoreKind') ? '' : query.get('topParentId')) };
+  }
+
+  window.mediaBarEncoreView = function () {
+    return pageOf(window.location.hash);
+  };
+
+  (function changeSlidesWithThePage() {
+    var loadedFor = null;
+
+    function sourceOf(hash) {
+      var page = pageOf(hash);
+      return page ? page.parent : '';
+    }
+
+    function swap(source) {
+      var mb = window.mediaBarEnhanced;
+      var slideshow = mb.STATE.slideshow;
+      loadedFor = source;
+      if (slideshow.slideInterval) {
+        slideshow.slideInterval.stop();
+        slideshow.slideInterval = null;
+      }
+      mb.SlideshowManager.stopAllPlayback();
+      Object.values(slideshow.videoPlayers || {}).forEach(function (player) {
+        try {
+          if (typeof player.destroy === 'function') {
+            player.destroy();
+          }
+        } catch (e) { /* already gone */ }
+      });
+      document.querySelectorAll('#slides-container .slide').forEach(function (slide) {
+        slide.remove();
+      });
+      slideshow.videoPlayers = {};
+      slideshow.itemIds = [];
+      slideshow.loadedItems = {};
+      slideshow.createdSlides = {};
+      slideshow.hasTrailer = {};
+      slideshow.playSignals = {};
+      slideshow.currentSlideIndex = 0;
+      slideshow.isPaused = false;
+      slideshow.isTransitioning = false;
+      slideshow.isVideoPlaying = false;
+      mb.initSlideshowData();
+    }
+
+    setInterval(function () {
+      var mb = window.mediaBarEnhanced;
+      if (!mb || !mb.STATE || !mb.STATE.slideshow.initialLoadComplete || mb.STATE.slideshow.isLoading) {
+        return;
+      }
+      var hash = window.location.hash;
+      if (loadedFor === null) {
+        loadedFor = sourceOf(hash); // the first load happened right now, for this page
+      }
+      if (!pageOf(hash) && hash !== '#/home' && hash !== '#/home.html') {
+        return; // another page: the slides only change when one of these opens
+      }
+      var source = sourceOf(hash);
+      if (source !== loadedFor) {
+        swap(source);
+      }
+    }, 300);
+  })();
+
+  /*
    * S8: pause the slideshow (and the trailer) while the banner is scrolled out of view, and resume it when it comes
    * back. Uses the author's own pause (togglePause), so the video, the timer and the progress bar stay consistent.
    * It only resumes what it paused itself: a pause made by the user is left alone.
