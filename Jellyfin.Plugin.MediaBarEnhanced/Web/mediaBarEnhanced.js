@@ -114,6 +114,7 @@
     progressBarLocation: "Dots",
     customPlaylists: "[]",
     forceSlideCounter: false,
+    dotCarousel: true, // Encore
     excludedLibraries: "",
     excludedGenres: "",
     excludedTags: "",
@@ -5279,6 +5280,14 @@
 
       const forceCounter = MediaBarEnhancedSettingsManager.getSetting('forceSlideCounter', CONFIG.forceSlideCounter);
 
+      // Encore: the dot carousel replaces the counter when there are many slides
+      if (!forceCounter && window.mediaBarEncoreDots?.build(dotsContainer, totalItems)) {
+        document.body.classList.remove("media-bar-has-counter");
+        document.getElementById("slides-container")?.classList.remove("has-counter");
+        this.updateDots();
+        return;
+      }
+
       // Switch to counter style if too many items or if forced
       if (totalItems > effectiveMaxDots || forceCounter) {
         document.body.classList.add("media-bar-has-counter");
@@ -5340,6 +5349,8 @@
           });
         }
       }
+
+      window.mediaBarEncoreDots?.update(currentIndex, totalItems); // Encore
 
       const dotsContainer = document.querySelector(".dots-container");
       if (dotsContainer) {

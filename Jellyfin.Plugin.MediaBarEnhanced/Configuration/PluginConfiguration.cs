@@ -26,6 +26,7 @@ namespace Jellyfin.Plugin.MediaBarEnhanced.Configuration
         public int MaxPaginationDots { get; set; } = 15;
         public bool ShowPaginationDots { get; set; } = true;
         public bool ForceSlideCounter { get; set; } = false;
+        public bool DotCarousel { get; set; } = true; // Encore
         public bool SlideAnimationEnabled { get; set; } = true;
         public bool EnableVideoBackdrop { get; set; } = true;
         public bool UseSponsorBlock { get; set; } = true;

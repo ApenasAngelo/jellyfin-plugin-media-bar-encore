@@ -50,6 +50,86 @@
   };
 
   /*
+   * Dot carousel (option DotCarousel): with many slides, 7 dots stay in view and the row moves under them. The 5 in the middle
+   * are the main ones and the one at each end is translucent, which says there is more that way. All the dots exist, so
+   * upstream marks the active one as usual; this only decides which of them show.
+   */
+  (function dotCarousel() {
+    var VISIBLE = 7;
+    var first = 0;
+    var style = document.createElement('style');
+    style.textContent =
+      '.encore-dots{overflow:hidden;padding:8px 0}' +
+      '.encore-dots-track{position:relative;display:flex;align-items:center;width:max-content;transition:transform .4s cubic-bezier(.4,0,.2,1)}' +
+      '.encore-dots .dot{flex-shrink:0;transition:transform .4s cubic-bezier(.4,0,.2,1),background-color .4s ease-in-out,opacity .4s ease-in-out}' +
+      '.encore-dots .dot.encore-dot-out{opacity:0}' +
+      '.encore-dots .dot.encore-dot-edge{opacity:.45;transform:scale(.7)}';
+    document.head.appendChild(style);
+
+    function place(track, animate) {
+      var from = track.children[first];
+      var to = track.children[first + VISIBLE - 1];
+      if (!from || !to.offsetWidth) {
+        return; // hidden right now: placed again when the banner shows and its active dot is marked
+      }
+      var margin = track.children[0].offsetLeft; // the dot's own margin, kept on both sides of the row
+      var box = track.parentNode;
+      if (!animate) {
+        track.style.transition = 'none';
+      }
+      box.style.width = (to.offsetLeft - from.offsetLeft + to.offsetWidth + margin * 2) + 'px';
+      track.style.transform = 'translateX(' + -(from.offsetLeft - margin) + 'px)';
+      if (!animate) {
+        void track.offsetWidth;
+        track.style.transition = '';
+      }
+    }
+
+    window.mediaBarEncoreDots = {
+      build: function (container, total) {
+        var config = window.mediaBarEnhanced && window.mediaBarEnhanced.CONFIG;
+        if (!config || config.dotCarousel === false || total <= VISIBLE) {
+          return false;
+        }
+        var box = document.createElement('div');
+        box.className = 'encore-dots';
+        var track = document.createElement('div');
+        track.className = 'encore-dots-track';
+        for (var i = 0; i < total; i++) {
+          var dot = document.createElement('span');
+          dot.className = 'dot';
+          dot.setAttribute('data-index', i);
+          track.appendChild(dot);
+        }
+        box.appendChild(track);
+        container.appendChild(box);
+        first = 0;
+        place(track, false);
+        return true;
+      },
+      update: function (current, total) {
+        var track = document.querySelector('.encore-dots-track');
+        if (!track) {
+          return;
+        }
+        // The active dot stays among the main ones, and reaches the end only at the first and the last slides.
+        if (current > first + VISIBLE - 2) {
+          first = current - (VISIBLE - 2);
+        } else if (current < first + 1) {
+          first = current - 1;
+        }
+        first = Math.max(0, Math.min(first, total - VISIBLE));
+        for (var i = 0; i < track.children.length; i++) {
+          var last = first + VISIBLE - 1;
+          track.children[i].classList.toggle('encore-dot-out', i < first || i > last);
+          track.children[i].classList.toggle('encore-dot-edge', i !== current && ((i === first && first > 0) || (i === last && last < total - 1)));
+        }
+        place(track, true);
+      }
+    };
+  })();
+
+  /*
    * Asking the server for random titles is the slowest step of the banner (3 to 5 s, more with the rows loading at the same
    * time). Each page opens with the list saved for it, reshuffled, and asks for a new one in the background for the next
    * visit. Only the first visit of a page on a device waits for the server.
