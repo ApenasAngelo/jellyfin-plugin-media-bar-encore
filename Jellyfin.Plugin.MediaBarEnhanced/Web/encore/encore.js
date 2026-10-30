@@ -174,6 +174,7 @@
       var ask = mb.ApiUtils.fetchItemIdsFromServer;
       mb.ApiUtils.fetchItemIdsFromServer = function () {
         var asked = source();
+        window.mediaBarEncoreAskedFor = asked;
         var saved = read(asked);
         // The answer is only for this page if the user is still on it when it arrives.
         var askAndSave = function () {
@@ -253,7 +254,7 @@
       }
       var hash = window.location.hash;
       if (loadedFor === null) {
-        loadedFor = sourceOf(hash); // the first load happened right now, for this page
+        loadedFor = window.mediaBarEncoreAskedFor !== undefined ? window.mediaBarEncoreAskedFor : sourceOf(hash); // the page that first load was for; the user may have moved on since
       }
       if (!pageOf(hash) && hash !== '#/home' && hash !== '#/home.html') {
         return; // another page: the slides only change when one of these opens
