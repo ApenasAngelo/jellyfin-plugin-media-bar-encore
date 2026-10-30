@@ -81,15 +81,6 @@
   })();
 
   /*
-   * YouTube shows its own big pause icon for a few seconds when a video starts, and an iframe cannot be styled from
-   * here. The trailer only fades in once the icon is gone; the banner image stays until then. Only the way to
-   * opacity 1 is delayed: the delay comes from the rule of the state being entered, so hiding stays immediate.
-   */
-  var style = document.createElement('style');
-  style.textContent = '.video-backdrop[style*="opacity: 1"] { transition-delay: 3s !important; }';
-  document.head.appendChild(style);
-
-  /*
    * A pause must win over a trailer that is still loading: togglePause only reaches a player that already plays, so one
    * that starts later (pause clicked before it loaded, or scrolled away) would play on while the button says paused.
    * Also hides it as togglePause does, so the paused YouTube frame and its own center icon are not shown.
