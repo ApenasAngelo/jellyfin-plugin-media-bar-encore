@@ -5544,7 +5544,7 @@
         }
 
         // Auto-unpause when a video slide becomes active
-        if (videoBackdrop && STATE.slideshow.isPaused) {
+        if (videoBackdrop && STATE.slideshow.isPaused && !window.mediaBarEncoreHoldPause?.()) { // Encore: a pause is kept
           STATE.slideshow.isPaused = false;
           const pauseButton = document.querySelector('.pause-button');
           if (pauseButton) {
@@ -5635,6 +5635,8 @@
             if (!currentSlide.classList.contains('active')) return;
 
             STATE.slideshow.playSignals[currentItemId] = true;
+
+            if (window.mediaBarEncoreHoldPause?.()) return; // Encore: not even a moment of sound while paused or out of view
 
             if (document.hidden) {
               console.log("🎬 Media Bar:", "Tab is hidden, deferring video playback until visible.");

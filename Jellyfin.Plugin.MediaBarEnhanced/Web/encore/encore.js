@@ -13,7 +13,7 @@
 
   /*
    * Library and collection pages are the home page at #/home?topParentId=<id> (Home Screen Sections Encore). The slides come
-   * from that library or collection; the Collections page itself has no titles of its own and keeps the slides of the home.
+   * from that library or collection. The Collections page shows everything, as the home does, so it has no banner.
    */
   function pageOf(hash) {
     if (!/^#\/home\?/.test(hash)) {
@@ -23,12 +23,99 @@
     if (!query.has('topParentId') || query.has('tab')) {
       return null;
     }
-    return { parent: query.get('encoreCollection') || (query.has('encoreKind') ? '' : query.get('topParentId')) };
+    if (query.has('encoreKind')) {
+      return null;
+    }
+    return { parent: query.get('encoreCollection') || query.get('topParentId') };
   }
+
+  // Without a banner the rows start at the top; the author's CSS keeps room for it on any home page.
+  (function rowsWithoutBanner() {
+    function mark() {
+      var hash = window.location.hash;
+      var without = /^#\/home\?/.test(hash) && new URLSearchParams(hash.split('?')[1]).has('encoreKind');
+      document.body && document.body.classList.toggle('encore-no-banner', without);
+    }
+    var style = document.createElement('style');
+    style.textContent = 'body.encore-no-banner .homeSectionsContainer{top:0!important;margin-top:0!important}' +
+      'body.encore-no-banner .homePage .sections{padding-top:5em}';
+    document.head.appendChild(style);
+    window.addEventListener('hashchange', mark);
+    setInterval(mark, 300);
+    mark();
+  })();
 
   window.mediaBarEncoreView = function () {
     return pageOf(window.location.hash);
   };
+
+  /*
+   * Asking the server for random titles is the slowest step of the banner (3 to 5 s, more with the rows loading at the same
+   * time). Each page opens with the list saved for it, reshuffled, and asks for a new one in the background for the next
+   * visit. Only the first visit of a page on a device waits for the server.
+   */
+  (function savedSlideLists() {
+    var MAX_AGE = 14 * 24 * 3600 * 1000;
+    var REFRESH_AFTER = 15000; // after the page has settled, so it does not compete with the rows
+
+    function key(source) {
+      var user = window.ApiClient && window.ApiClient.getCurrentUserId && window.ApiClient.getCurrentUserId();
+      return 'encore-slides-' + user + '-' + (source || 'home');
+    }
+
+    function read(source) {
+      try {
+        var saved = JSON.parse(localStorage.getItem(key(source)));
+        return saved && Date.now() - saved.at < MAX_AGE && saved.ids.length ? saved.ids : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function save(source, ids) {
+      try {
+        if (ids && ids.length) {
+          localStorage.setItem(key(source), JSON.stringify({ at: Date.now(), ids: ids }));
+        }
+      } catch (e) { /* no storage: every visit asks the server */ }
+    }
+
+    function source() {
+      var page = pageOf(window.location.hash);
+      return page ? page.parent : '';
+    }
+
+    function wrap() {
+      var mb = window.mediaBarEnhanced;
+      if (!mb || !mb.ApiUtils) {
+        return setTimeout(wrap, 50);
+      }
+      var ask = mb.ApiUtils.fetchItemIdsFromServer;
+      mb.ApiUtils.fetchItemIdsFromServer = function () {
+        var asked = source();
+        var saved = read(asked);
+        // The answer is only for this page if the user is still on it when it arrives.
+        var askAndSave = function () {
+          return ask.call(mb.ApiUtils).then(function (ids) {
+            if (source() === asked) {
+              save(asked, ids);
+            }
+            return ids;
+          });
+        };
+        if (!saved) {
+          return askAndSave();
+        }
+        setTimeout(function () {
+          if (source() === asked && !document.hidden) {
+            askAndSave();
+          }
+        }, REFRESH_AFTER);
+        return Promise.resolve(mb.SlideUtils.shuffleArray(saved.slice()));
+      };
+    }
+    wrap();
+  })();
 
   (function changeSlidesWithThePage() {
     var loadedFor = null;
@@ -64,7 +151,7 @@
       slideshow.hasTrailer = {};
       slideshow.playSignals = {};
       slideshow.currentSlideIndex = 0;
-      slideshow.isPaused = false;
+      slideshow.isPaused = window.mediaBarEncoreHoldPause(); // a new page does not undo a pause
       slideshow.isTransitioning = false;
       slideshow.isVideoPlaying = false;
       mb.initSlideshowData();
@@ -90,102 +177,78 @@
   })();
 
   /*
-   * S8: pause the slideshow (and the trailer) while the banner is scrolled out of view, and resume it when it comes
-   * back. Uses the author's own pause (togglePause), so the video, the timer and the progress bar stay consistent.
-   * It only resumes what it paused itself: a pause made by the user is left alone.
+   * The trailer stays paused for as long as the user paused it or the banner is out of view (S8). This is a state checked
+   * all the time and not a reaction to events, because the slides are rebuilt on every page: a scroll during that has no
+   * running slideshow to pause and sends no second event, and a pause would be forgotten with the old slides.
    */
-  (function pauseWhenOffscreen() {
+  (function holdThePause() {
     var VISIBLE_RATIO = 0.25; // below this share of the banner on screen, it counts as out of view
-    var observed = null;
+    var userPaused = false;
     var pausedByUs = false;
-    var observer = new IntersectionObserver(onIntersection, { threshold: [0, VISIBLE_RATIO, 0.5, 1] });
+    var ours = false; // togglePause called from here, not by the button or the keyboard
+    var heldPlayer = null;
 
-    function onIntersection(entries) {
-      var mb = window.mediaBarEnhanced;
-      if (!mb || !mb.STATE || !mb.SlideshowManager) {
-        return;
+    function offscreen() {
+      var container = document.getElementById('slides-container');
+      if (!container || container.classList.contains('media-bar-hidden') || document.hidden) {
+        return false; // hidden by the Media Bar itself (other page, video player open): it handles playback there
       }
-      var slideshow = mb.STATE.slideshow;
-      if (!slideshow.slideInterval || !(slideshow.itemIds || []).length) {
-        return; // not started yet (or nothing to show): togglePause needs a running slideshow
+      var box = container.getBoundingClientRect();
+      if (!box.height) {
+        return false;
       }
-      var entry = entries[entries.length - 1];
-      if (entry.target.classList.contains('media-bar-hidden') || entry.boundingClientRect.height === 0) {
-        return; // hidden by the Media Bar itself (other page, video player open): it handles playback there
-      }
-      var visible = entry.isIntersecting && entry.intersectionRatio >= VISIBLE_RATIO;
-
-      if (!visible && !slideshow.isPaused && !document.hidden) {
-        mb.SlideshowManager.togglePause();
-        pausedByUs = true;
-      } else if (visible && pausedByUs) {
-        pausedByUs = false;
-        if (slideshow.isPaused) {
-          mb.SlideshowManager.togglePause();
-        }
-      }
+      return (Math.min(box.bottom, window.innerHeight) - Math.max(box.top, 0)) / box.height < VISIBLE_RATIO;
     }
 
-    // Nothing may advance the slides while the banner is out of view: a trailer ending or a hover timer resuming would
-    // move on to the next slide, and the author's code unpauses on every video slide, so its trailer plays unseen.
-    function holdSlidesWhileOffscreen() {
-      var mb = window.mediaBarEnhanced;
-      if (!mb || !mb.SlideshowManager || mb.SlideshowManager.encoreHold) {
+    window.mediaBarEncoreHoldPause = function () {
+      return userPaused || offscreen();
+    };
+
+    function wrap(manager) {
+      if (manager.encoreHold) {
         return;
       }
-      var nextSlide = mb.SlideshowManager.nextSlide;
-      mb.SlideshowManager.encoreHold = true;
-      mb.SlideshowManager.nextSlide = function () {
-        return pausedByUs ? undefined : nextSlide.apply(this, arguments);
+      manager.encoreHold = true;
+      var toggle = manager.togglePause;
+      manager.togglePause = function () {
+        var slideshow = window.mediaBarEnhanced.STATE.slideshow;
+        if (!slideshow.slideInterval) {
+          return undefined; // upstream needs a running slideshow; the state is checked again right after it starts
+        }
+        if (!ours) {
+          userPaused = !slideshow.isPaused;
+          pausedByUs = false;
+        }
+        return toggle.apply(this, arguments);
+      };
+      // Nothing may advance the slides while the banner is out of view: a trailer ending or a timer would move on.
+      var nextSlide = manager.nextSlide;
+      manager.nextSlide = function () {
+        return offscreen() ? undefined : nextSlide.apply(this, arguments);
       };
     }
 
-    // The banner is rebuilt when the home page is opened again; a cheap check keeps the observer on the current one.
-    setInterval(function () {
-      holdSlidesWhileOffscreen();
-      var container = document.getElementById('slides-container');
-      if (container === observed) {
-        return;
+    function ourToggle(manager) {
+      ours = true;
+      try {
+        manager.togglePause();
+      } finally {
+        ours = false;
       }
-      if (observed) {
-        observer.unobserve(observed);
-      }
-      observed = container;
-      pausedByUs = false;
-      if (container) {
-        observer.observe(container);
-      }
-    }, 1000);
-  })();
+    }
 
-  /*
-   * A pause must win over a trailer that is still loading: togglePause only reaches a player that already plays, so one
-   * that starts later (pause clicked before it loaded, or scrolled away) would play on while the button says paused.
-   * Also hides it as togglePause does, so the paused YouTube frame and its own center icon are not shown.
-   */
-  (function enforcePause() {
-    var heldPlayer = null;
-    setInterval(function () {
-      var mb = window.mediaBarEnhanced;
-      var slideshow = mb && mb.STATE && mb.STATE.slideshow;
-      if (!slideshow) {
-        return;
-      }
-      if (!slideshow.isPaused) {
-        // The author's autoplay fallback mutes a player it finds not playing, which a held trailer is: give the sound back.
-        if (heldPlayer && !slideshow.isMuted && typeof heldPlayer.unMute === 'function') {
-          heldPlayer.unMute();
-        }
-        heldPlayer = null;
-        return;
-      }
+    // togglePause only reaches a player that already plays, so one that starts later would play on while the button says
+    // paused. Also hides it as togglePause does, so the paused YouTube frame and its own center icon are not shown.
+    function holdThePlayer(slideshow) {
       var itemId = (slideshow.itemIds || [])[slideshow.currentSlideIndex];
       var player = slideshow.videoPlayers && slideshow.videoPlayers[itemId];
       if (player && typeof player.getPlayerState === 'function' && typeof player.pauseVideo === 'function') {
         var state = player.getPlayerState();
         heldPlayer = player;
         if (state === 1 || state === 3) { // YT.PlayerState PLAYING, BUFFERING
-          player.pauseVideo();
+          try {
+            player.pauseVideo();
+          } catch (e) { /* its iframe is already gone */ }
         }
         if (player._wrapperDiv && player._wrapperDiv.style.opacity !== '0') {
           player._wrapperDiv.style.transition = 'opacity 0.5s ease-in-out';
@@ -197,7 +260,36 @@
       if (video && !video.paused) {
         video.pause();
       }
-    }, 250);
+    }
+
+    setInterval(function () {
+      var mb = window.mediaBarEnhanced;
+      var slideshow = mb && mb.STATE && mb.STATE.slideshow;
+      if (!slideshow || !mb.SlideshowManager) {
+        return;
+      }
+      wrap(mb.SlideshowManager);
+      var hold = window.mediaBarEncoreHoldPause();
+      var running = slideshow.slideInterval && (slideshow.itemIds || []).length;
+      if (hold && !slideshow.isPaused && running) {
+        ourToggle(mb.SlideshowManager);
+        pausedByUs = !userPaused;
+      } else if (!hold && slideshow.isPaused && pausedByUs && running) {
+        pausedByUs = false;
+        ourToggle(mb.SlideshowManager);
+      }
+      if (hold || slideshow.isPaused) {
+        holdThePlayer(slideshow);
+        return;
+      }
+      // The author's autoplay fallback mutes a player it finds not playing, which a held trailer is: give the sound back.
+      if (heldPlayer && !slideshow.isMuted && typeof heldPlayer.unMute === 'function') {
+        try {
+          heldPlayer.unMute();
+        } catch (e) { /* its iframe is already gone */ }
+      }
+      heldPlayer = null;
+    }, 100);
   })();
 
   /*
