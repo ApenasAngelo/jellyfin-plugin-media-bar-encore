@@ -48,8 +48,23 @@
       }
     }
 
+    // Nothing may advance the slides while the banner is out of view: a trailer ending or a hover timer resuming would
+    // move on to the next slide, and the author's code unpauses on every video slide, so its trailer plays unseen.
+    function holdSlidesWhileOffscreen() {
+      var mb = window.mediaBarEnhanced;
+      if (!mb || !mb.SlideshowManager || mb.SlideshowManager.encoreHold) {
+        return;
+      }
+      var nextSlide = mb.SlideshowManager.nextSlide;
+      mb.SlideshowManager.encoreHold = true;
+      mb.SlideshowManager.nextSlide = function () {
+        return pausedByUs ? undefined : nextSlide.apply(this, arguments);
+      };
+    }
+
     // The banner is rebuilt when the home page is opened again; a cheap check keeps the observer on the current one.
     setInterval(function () {
+      holdSlidesWhileOffscreen();
       var container = document.getElementById('slides-container');
       if (container === observed) {
         return;
@@ -63,5 +78,47 @@
         observer.observe(container);
       }
     }, 1000);
+  })();
+
+  /*
+   * A pause must win over a trailer that is still loading: togglePause only reaches a player that already plays, so one
+   * that starts later (pause clicked before it loaded, or scrolled away) would play on while the button says paused.
+   * Also hides it as togglePause does, so the paused YouTube frame and its own center icon are not shown.
+   */
+  (function enforcePause() {
+    var heldPlayer = null;
+    setInterval(function () {
+      var mb = window.mediaBarEnhanced;
+      var slideshow = mb && mb.STATE && mb.STATE.slideshow;
+      if (!slideshow) {
+        return;
+      }
+      if (!slideshow.isPaused) {
+        // The author's autoplay fallback mutes a player it finds not playing, which a held trailer is: give the sound back.
+        if (heldPlayer && !slideshow.isMuted && typeof heldPlayer.unMute === 'function') {
+          heldPlayer.unMute();
+        }
+        heldPlayer = null;
+        return;
+      }
+      var itemId = (slideshow.itemIds || [])[slideshow.currentSlideIndex];
+      var player = slideshow.videoPlayers && slideshow.videoPlayers[itemId];
+      if (player && typeof player.getPlayerState === 'function' && typeof player.pauseVideo === 'function') {
+        var state = player.getPlayerState();
+        heldPlayer = player;
+        if (state === 1 || state === 3) { // YT.PlayerState PLAYING, BUFFERING
+          player.pauseVideo();
+        }
+        if (player._wrapperDiv && player._wrapperDiv.style.opacity !== '0') {
+          player._wrapperDiv.style.transition = 'opacity 0.5s ease-in-out';
+          player._wrapperDiv.style.opacity = '0';
+        }
+      }
+      var slide = document.querySelector('.slide[data-item-id="' + itemId + '"]');
+      var video = slide && slide.querySelector('video');
+      if (video && !video.paused) {
+        video.pause();
+      }
+    }, 250);
   })();
 })();
