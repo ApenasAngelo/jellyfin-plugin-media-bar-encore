@@ -55,7 +55,8 @@
    * visit. Only the first visit of a page on a device waits for the server.
    */
   (function savedSlideLists() {
-    var MAX_AGE = 14 * 24 * 3600 * 1000;
+    var MAX_AGE = 7 * 24 * 3600 * 1000;
+    var MIN_SAVED = 5; // fewer than this still available: ask for a new list
     var REFRESH_AFTER = 15000; // after the page has settled, so it does not compete with the rows
 
     function key(source) {
@@ -111,7 +112,15 @@
             askAndSave();
           }
         }, REFRESH_AFTER);
-        return Promise.resolve(mb.SlideUtils.shuffleArray(saved.slice()));
+        // Titles leave the library: only the ones still available open the banner.
+        return window.ApiClient.getJSON(window.ApiClient.getUrl('Items', {
+          Ids: saved.join(','), userId: window.ApiClient.getCurrentUserId(), EnableImages: false, EnableUserData: false
+        })).then(function (found) {
+          var ids = (found.Items || []).map(function (item) {
+            return item.Id;
+          });
+          return ids.length >= MIN_SAVED ? mb.SlideUtils.shuffleArray(ids) : askAndSave();
+        }, askAndSave);
       };
     }
     wrap();

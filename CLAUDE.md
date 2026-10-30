@@ -68,4 +68,4 @@ desenvolvimento é feito pela sessão **ops** (não há sessão de Remote Contro
 - S8: pausar o trailer quando o banner sai da tela (`IntersectionObserver`), em arquivo novo.
 - Fase 3 (feita, 2026-10-30): nas páginas `#/home?topParentId=` os slides vêm da biblioteca ou coleção (`mediaBarEncoreView` em `encore/encore.js`; a aba Coleções não tem banner). O pedido por item (`Fields=`) não mudou: o filtro do Caddy casa por conteúdo.
 - A pausa é um estado conferido a cada 100 ms (`holdThePause`), não reação a eventos: os slides são refeitos a cada página. Vale até o usuário despausar, inclusive em outras páginas.
-- Cada página abre com a lista de slides salva no navegador (14 dias) e pede outra em segundo plano após 15 s (`savedSlideLists`); a 1ª visita de um aparelho ainda espera o servidor. Sem indicação de carregamento: ver na fase 4.
+- Cada página abre com a lista de slides salva no navegador (7 dias, conferida no servidor ao abrir) e pede outra em segundo plano após 15 s (`savedSlideLists`); a 1ª visita de um aparelho ainda espera o servidor. Sem indicação de carregamento: ver na fase 4.
