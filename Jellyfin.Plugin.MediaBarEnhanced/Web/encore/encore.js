@@ -121,4 +121,49 @@
       }
     }, 250);
   })();
+
+  /*
+   * A trailer that fails (blocked video, YouTube asking for a login) becomes a slide without trailer: no player, no
+   * volume button, and the progress bar and the timer running together. Upstream only started the timer, so the bar
+   * waited for the 5 s failsafe and stopped halfway through the slide.
+   */
+  window.mediaBarEncoreTrailerFailed = function (player, slide, itemId) {
+    var mb = window.mediaBarEnhanced;
+    if (!mb || !mb.STATE || !mb.SlideshowManager) {
+      return;
+    }
+    var slideshow = mb.STATE.slideshow;
+    if (slideshow.hasTrailer) {
+      delete slideshow.hasTrailer[itemId]; // the low-memory mode would create the player again
+    }
+    if (slideshow.videoPlayers) {
+      delete slideshow.videoPlayers[itemId];
+    }
+    try {
+      player.destroy();
+    } catch (e) { /* already gone */ }
+    if (!slide) {
+      return;
+    }
+    slide.querySelectorAll('.video-backdrop').forEach(function (element) {
+      element.remove();
+    });
+    slide.classList.remove('with-video');
+    if (!slide.classList.contains('active')) {
+      return;
+    }
+    slideshow.isVideoPlaying = false;
+    if (slideshow.failsafeTimeout) {
+      clearTimeout(slideshow.failsafeTimeout);
+      slideshow.failsafeTimeout = null;
+    }
+    var muteButton = document.querySelector('.mute-button');
+    if (muteButton) {
+      muteButton.style.display = 'none';
+    }
+    mb.SlideshowManager.updateProgressBar(false, slideshow.currentSlideIndex);
+    if (slideshow.slideInterval && !slideshow.isPaused) {
+      slideshow.slideInterval.restart();
+    }
+  };
 })();

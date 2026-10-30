@@ -4496,6 +4496,7 @@
                   console.warn("🎬 Media Bar:", `YouTube player error ${event.data} for video ${videoId}`);
                   const slide = document.querySelector(`.slide[data-item-id="${itemId}"]`);
                   const isActive = slide && slide.classList.contains('active');
+                  if (window.mediaBarEncoreTrailerFailed) { window.mediaBarEncoreTrailerFailed(event.target, slide, itemId); return; } // Encore: becomes a slide without trailer
                   if (isActive) {
                     STATE.slideshow.isVideoPlaying = false;
                     // Fallback to normal slideshow interval on error
