@@ -137,9 +137,10 @@
   (function savedSlideLists() {
     var MAX_AGE = 7 * 24 * 3600 * 1000;
     var MIN_SAVED = 5; // fewer than this still available: ask for a new list
+    var REFRESH_AGE = 6 * 3600 * 1000; // a list this old gets replaced in the background; asking every visit held the server
     var FILL_START = 20000;
     var FILL_GAP = 10000;
-    var REFRESH_AFTER = 15000; // after the page has settled, so it does not compete with the rows
+    var REFRESH_AFTER = 30000; // after the page has settled, so it does not compete with the rows
 
     function key(source) {
       var user = window.ApiClient && window.ApiClient.getCurrentUserId && window.ApiClient.getCurrentUserId();
@@ -153,6 +154,33 @@
       } catch (e) {
         return null;
       }
+    }
+
+    function isOld(source) {
+      try {
+        return Date.now() - JSON.parse(localStorage.getItem(key(source))).at > REFRESH_AGE;
+      } catch (e) {
+        return true;
+      }
+    }
+
+    // Upstream asks 3 to 4 things per slide, one at a time, for this slide and the 6 around it. One request brings the data of
+    // all the slides into upstream's own cache of items, and tells which titles are still in the library. The fields are the
+    // ones upstream asks for, without MediaSources, which would make Gelato probe the sources.
+    function loadDetails(mb, ids) {
+      return window.ApiClient.getJSON(window.ApiClient.getUrl('Items', {
+        Ids: ids.join(','), userId: window.ApiClient.getCurrentUserId(), enableUserData: true,
+        Fields: 'Overview,RemoteTrailers,Genres,CommunityRating,CriticRating,OfficialRating,PremiereDate,ProductionYear,RunTimeTicks,LocalTrailerCount'
+      })).then(function (found) {
+        var slideshow = mb.STATE.slideshow;
+        return (found.Items || []).map(function (item) {
+          if (!mb.CONFIG.trailerEnabledLibraries) {
+            item.MediaBarLibraryId = item.ParentId || 'any'; // only per-library trailer rules read it: no Ancestors request
+          }
+          slideshow.loadedItems[item.Id] = item;
+          return item.Id;
+        });
+      });
     }
 
     function save(source, ids) {
@@ -187,23 +215,39 @@
             return ids;
           });
         };
-        if (!saved) {
-          return askAndSave();
-        }
-        setTimeout(function () {
-          if (source() === asked && !document.hidden) {
-            askAndSave();
-          }
-        }, REFRESH_AFTER);
-        // Titles leave the library: only the ones still available open the banner.
-        return window.ApiClient.getJSON(window.ApiClient.getUrl('Items', {
-          Ids: saved.join(','), userId: window.ApiClient.getCurrentUserId(), EnableImages: false, EnableUserData: false
-        })).then(function (found) {
-          var ids = (found.Items || []).map(function (item) {
-            return item.Id;
+        var askAndLoad = function () {
+          return askAndSave().then(function (ids) {
+            return loadDetails(mb, ids).then(function () {
+              return ids;
+            }, function () {
+              return ids;
+            });
           });
-          return ids.length >= MIN_SAVED ? mb.SlideUtils.shuffleArray(ids) : askAndSave();
-        }, askAndSave);
+        };
+        if (!saved) {
+          return askAndLoad();
+        }
+        if (isOld(asked)) {
+          setTimeout(function () {
+            if (source() === asked && !document.hidden) {
+              askAndSave();
+            }
+          }, REFRESH_AFTER);
+        }
+        // Titles leave the library: only the ones still available open the banner.
+        return loadDetails(mb, saved).then(function (ids) {
+          return ids.length >= MIN_SAVED ? mb.SlideUtils.shuffleArray(ids) : askAndLoad();
+        }, askAndLoad);
+      };
+      // Only a fallback for a title without a remote trailer, unless local ones are preferred. Looking for one in a series goes
+      // through its seasons, which made series slides the slowest.
+      var findLocal = mb.ApiUtils.fetchLocalTrailer;
+      mb.ApiUtils.fetchLocalTrailer = function (item) {
+        var remote = item && item.RemoteTrailers && item.RemoteTrailers.length;
+        if (remote && !mb.CONFIG.preferLocalTrailers && !mb.CONFIG.onlyLocalTrailers) {
+          return Promise.resolve(null);
+        }
+        return findLocal.apply(this, arguments);
       };
     }
     wrap();
@@ -314,10 +358,15 @@
 
     setInterval(function () {
       var mb = window.mediaBarEnhanced;
+      var hash = window.location.hash;
+      // The banner comes back with the first slide of this page, without waiting for the rest of the load.
+      var shown = document.querySelector('#slides-container.' + CHANGING + ' .slide.active');
+      if (shown && mb && mb.STATE && loadedFor === sourceOf(hash) && mb.STATE.slideshow.itemIds.indexOf(shown.dataset.itemId) !== -1) {
+        shown.closest('#slides-container').classList.remove(CHANGING);
+      }
       if (!mb || !mb.STATE || !mb.STATE.slideshow.initialLoadComplete || mb.STATE.slideshow.isLoading) {
         return;
       }
-      var hash = window.location.hash;
       if (loadedFor === null) {
         loadedFor = window.mediaBarEncoreAskedFor !== undefined ? window.mediaBarEncoreAskedFor : sourceOf(hash); // the page that first load was for; the user may have moved on since
       }
