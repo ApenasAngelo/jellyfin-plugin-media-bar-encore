@@ -137,6 +137,8 @@
   (function savedSlideLists() {
     var MAX_AGE = 7 * 24 * 3600 * 1000;
     var MIN_SAVED = 5; // fewer than this still available: ask for a new list
+    var FILL_START = 20000;
+    var FILL_GAP = 10000;
     var REFRESH_AFTER = 15000; // after the page has settled, so it does not compete with the rows
 
     function key(source) {
@@ -205,15 +207,78 @@
       };
     }
     wrap();
+
+    // Lists for the pages not opened yet, one at a time and well spaced, so that even their first visit does not wait.
+    function fillOneList(pages) {
+      var next = pages.shift();
+      if (!next) {
+        return;
+      }
+      if (read(next.Id) || document.hidden) {
+        return setTimeout(fillOneList, 500, pages);
+      }
+      window.ApiClient.getJSON(window.ApiClient.getUrl('Items', {
+        IncludeItemTypes: 'Movie,Series', Recursive: true, hasOverview: true, imageTypes: 'Logo,Backdrop', sortBy: 'Random', isPlayed: false,
+        enableUserData: true, EnableImages: false, parentId: next.Id, Limit: next.CollectionType === 'movies' || next.CollectionType === 'tvshows' ? 15 : 30
+      })).then(function (found) {
+        save(next.Id, (found.Items || []).map(function (item) {
+          return item.Id;
+        }));
+      }).finally(function () {
+        setTimeout(fillOneList, FILL_GAP, pages);
+      });
+    }
+
+    function startFilling() {
+      var client = window.ApiClient;
+      if (!client || !client.getCurrentUserId || !client.getCurrentUserId()) {
+        return setTimeout(startFilling, FILL_START);
+      }
+      Promise.all([
+        client.getJSON(client.getUrl('Users/' + client.getCurrentUserId() + '/Views')),
+        client.getJSON(client.getUrl('Items', { userId: client.getCurrentUserId(), IncludeItemTypes: 'BoxSet', Recursive: true, EnableImages: false }))
+      ]).then(function (answers) {
+        var libraries = (answers[0].Items || []).filter(function (view) {
+          return view.CollectionType !== 'boxsets' && view.CollectionType !== 'playlists';
+        });
+        fillOneList(libraries.concat(answers[1].Items || []));
+      }, function () { /* the next load of the site tries again */ });
+    }
+    setTimeout(startFilling, FILL_START);
   })();
 
   (function changeSlidesWithThePage() {
     var loadedFor = null;
+    var CHANGING = 'encore-banner-changing';
+    var style = document.createElement('style');
+    style.textContent = '#slides-container.' + CHANGING + '>*{visibility:hidden!important}';
+    document.head.appendChild(style);
 
     function sourceOf(hash) {
       var page = pageOf(hash);
       return page ? page.parent : '';
     }
+
+    // Nothing of the old page stays while the new one loads: slides, dots, timer and trailer go at the moment the page changes.
+    function leaveOldSlides() {
+      var mb = window.mediaBarEnhanced;
+      var hash = window.location.hash;
+      var container = document.getElementById('slides-container');
+      var current = loadedFor !== null ? loadedFor : window.mediaBarEncoreAskedFor; // still on the first load: the page it is for
+      if (!mb || !mb.STATE || !container || current === undefined || (!pageOf(hash) && hash !== '#/home' && hash !== '#/home.html')) {
+        return;
+      }
+      if (sourceOf(hash) === current || container.classList.contains(CHANGING)) {
+        return;
+      }
+      container.classList.add(CHANGING);
+      var slideshow = mb.STATE.slideshow;
+      if (slideshow.slideInterval) {
+        slideshow.slideInterval.stop();
+      }
+      mb.SlideshowManager.stopAllPlayback();
+    }
+    window.addEventListener('hashchange', leaveOldSlides);
 
     function swap(source) {
       var mb = window.mediaBarEnhanced;
@@ -261,9 +326,15 @@
       }
       var source = sourceOf(hash);
       if (source !== loadedFor) {
+        leaveOldSlides();
         swap(source);
+      } else {
+        var container = document.getElementById('slides-container');
+        if (container) {
+          container.classList.remove(CHANGING); // the new page's first slide is ready, or it has none
+        }
       }
-    }, 300);
+    }, 100);
   })();
 
   /*
