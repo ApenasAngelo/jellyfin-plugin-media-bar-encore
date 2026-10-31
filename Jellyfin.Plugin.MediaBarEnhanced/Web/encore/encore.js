@@ -244,7 +244,9 @@
       var findLocal = mb.ApiUtils.fetchLocalTrailer;
       mb.ApiUtils.fetchLocalTrailer = function (item) {
         var remote = item && item.RemoteTrailers && item.RemoteTrailers.length;
-        if (remote && !mb.CONFIG.preferLocalTrailers && !mb.CONFIG.onlyLocalTrailers) {
+        // Without a remote trailer the search still ran, one request per season, and held the slide: the server already says there is none.
+        var noLocal = item && item.LocalTrailerCount === 0 && item.Type !== 'Season' && item.Type !== 'Episode';
+        if ((remote || noLocal) && !mb.CONFIG.preferLocalTrailers && !mb.CONFIG.onlyLocalTrailers) {
           return Promise.resolve(null);
         }
         return findLocal.apply(this, arguments);
@@ -289,6 +291,29 @@
       }, function () { /* the next load of the site tries again */ });
     }
     setTimeout(startFilling, FILL_START);
+  })();
+
+  /*
+   * Each neighbour slide opens a YouTube player, the heaviest work of a page, right when its rows are loading. They wait for the
+   * page to settle; the slide on screen does not depend on them.
+   */
+  (function neighboursWait() {
+    var WAIT = 4000;
+    var timer = null;
+    function wrap() {
+      var manager = window.mediaBarEnhanced && window.mediaBarEnhanced.SlideshowManager;
+      if (!manager) {
+        return setTimeout(wrap, 50);
+      }
+      var preload = manager.preloadAdjacentSlides;
+      manager.preloadAdjacentSlides = function (index) {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          preload.call(manager, window.mediaBarEnhanced.STATE.slideshow.currentSlideIndex);
+        }, WAIT);
+      };
+    }
+    wrap();
   })();
 
   (function changeSlidesWithThePage() {
@@ -400,9 +425,10 @@
 
     function offscreen() {
       var container = document.getElementById('slides-container');
-      if (!container || container.classList.contains('media-bar-hidden') || document.hidden) {
+      if (!container || container.classList.contains('media-bar-hidden')) {
         return false; // hidden by the Media Bar itself (other page, video player open): it handles playback there
       }
+      // A hidden window (another desktop, another tab) keeps its layout, so this still holds there: hiding it must not release the pause.
       var box = container.getBoundingClientRect();
       if (!box.height) {
         return false;
